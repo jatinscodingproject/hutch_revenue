@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hutch Revenue Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo">H</div>
+            <div>
+                <strong>Hutch</strong>
+                <small>Revenue Portal</small>
+            </div>
+        </div>
+
+        <div class="menu-label">MAIN MENU</div>
+
+        <a class="menu active">
+            <span>▦</span> Dashboard
+        </a>
+
+        <div class="sidebar-bottom">
+            <div class="profile">
+                <div class="avatar">
+                    <%= user.username.substring(0, 2).toUpperCase() %>
+                </div>
+                <div class="profile-text">
+                    <strong><%= user.username %></strong>
+                    <small><%= user.role %></small>
+                </div>
+            </div>
+
+            <form action="/logout" method="POST">
+                <button class="logout-button" type="submit">
+                    <span>↪</span> Logout
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <header class="topbar">
+            <div>
+                <h1>Revenue Dashboard</h1>
+                <p>Yumzzy & Eduwav performance overview</p>
+            </div>
+
+            <div class="topbar-right">
+                <div class="live">
+                    <span></span> LIVE
+                </div>
+                <div class="top-avatar">
+                    <%= user.username.substring(0, 2).toUpperCase() %>
+                </div>
+            </div>
+        </header>
+
+        <section class="filter-card">
+            <div class="section-heading">
+                <div class="section-icon">⌕</div>
+                <div>
+                    <h3>Report Filters</h3>
+                    <p>Select a date range to generate the report</p>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="filter-field">
+                    <label>FROM DATE</label>
+                    <input type="date" id="startDate" value="<%= startDate %>">
+                </div>
+
+                <div class="filter-field">
+                    <label>TO DATE</label>
+                    <input type="date" id="endDate" value="<%= endDate %>">
+                </div>
+
+                <div class="filter-field small-filter">
+                    <label>DAYS / PAGE</label>
+                    <select id="limit">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+
+                <button class="generate-button" onclick="loadDashboard(1)">
+                    Generate Report <span>→</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="stats-grid">
+
+            <div class="stat-card revenue-card">
+                <div class="stat-card-top">
+                    <div class="stat-icon revenue-icon">₹</div>
+                    <span class="tag green-tag">REVENUE</span>
+                </div>
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-value" id="totalRevenue">₹0.00</div>
+                <div class="stat-note">Activations + Renewals</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-top">
+                    <div class="stat-icon blue-icon">⚡</div>
+                    <span class="tag blue-tag">NEW</span>
+                </div>
+                <div class="stat-label">Total Activations</div>
+                <div class="stat-value" id="totalActivations">0</div>
+                <div class="stat-note">New subscriptions</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-top">
+                    <div class="stat-icon purple-icon">↻</div>
+                    <span class="tag purple-tag">RENEWAL</span>
+                </div>
+                <div class="stat-label">Total Renewals</div>
+                <div class="stat-value" id="totalRenewals">0</div>
+                <div class="stat-note">Renewed subscriptions</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-top">
+                    <div class="stat-icon orange-icon">▤</div>
+                    <span class="tag orange-tag">TOTAL</span>
+                </div>
+                <div class="stat-label">Transactions</div>
+                <div class="stat-value" id="totalTransactions">0</div>
+                <div class="stat-note">Successful events</div>
+            </div>
+
+        </section>
+
+        <section class="service-summary">
+
+            <div class="service-box yumzzy-box">
+                <div class="service-logo">Y</div>
+                <div class="service-info">
+                    <span>YUMZZY</span>
+                    <strong id="yumzzyRevenue">₹0.00</strong>
+                    <small>Service Revenue</small>
+                </div>
+                <div class="service-percent" id="yumzzyPercent">0%</div>
+            </div>
+
+            <div class="service-box eduwav-box">
+                <div class="service-logo">E</div>
+                <div class="service-info">
+                    <span>EDUWAV</span>
+                    <strong id="eduwavRevenue">₹0.00</strong>
+                    <small>Service Revenue</small>
+                </div>
+                <div class="service-percent" id="eduwavPercent">0%</div>
+            </div>
+
+        </section>
+
+        <section class="chart-grid">
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h3>Daily Revenue</h3>
+                        <p>Revenue trend by date</p>
+                    </div>
+                    <span class="panel-pill">₹ REVENUE</span>
+                </div>
+                <div class="chart-area">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h3>Service Revenue</h3>
+                        <p>Revenue distribution</p>
+                    </div>
+                </div>
+                <div class="pie-area">
+                    <canvas id="serviceChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="panel table-panel">
+
+            <div class="panel-header">
+                <div>
+                    <h3>Service Performance</h3>
+                    <p>Service-wise revenue summary</p>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Activations</th>
+                            <th>Renewals</th>
+                            <th>Transactions</th>
+                            <th>Revenue</th>
+                            <th>Share</th>
+                        </tr>
+                    </thead>
+                    <tbody id="serviceTable"></tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <section class="panel table-panel">
+
+            <div class="panel-header">
+                <div>
+                    <h3>Day-wise Revenue</h3>
+                    <p>Daily performance summary</p>
+                </div>
+
+                <button class="export-button" onclick="exportCSV()">
+                    ↓ Export CSV
+                </button>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Activations</th>
+                            <th>Renewals</th>
+                            <th>Transactions</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyTable"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <div id="paginationInfo"></div>
+
+                <div class="pagination-buttons">
+                    <button id="prevButton" onclick="changePage(-1)">‹</button>
+                    <div id="pageNumbers"></div>
+                    <button id="nextButton" onclick="changePage(1)">›</button>
+                </div>
+            </div>
+
+        </section>
+
+        <footer>
+            Hutch Revenue Dashboard • Existing callback data
+        </footer>
+
+    </main>
+</div>
+
+<script>
+let currentPage = 1;
+let lastData = null;
+let revenueChart = null;
+let serviceChart = null;
+
+function money(value) {
+    return "₹" + Number(value || 0).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function number(value) {
+    return Number(value || 0).toLocaleString("en-IN");
+}
+
+async function loadDashboard(page = 1) {
+
+    currentPage = page;
+
+    const startDate =
+        document.getElementById("startDate").value;
+
+    const endDate =
+        document.getElementById("endDate").value;
+
+    const limit =
+        document.getElementById("limit").value;
+
+    const url =
+        `/api/revenue?startDate=${encodeURIComponent(startDate)}` +
+        `&endDate=${encodeURIComponent(endDate)}` +
+        `&page=${page}&limit=${limit}`;
+
+    try {
+
+        const response = await fetch(url);
+
+        if (response.status === 401) {
+            window.location.href = "/login";
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            alert(data.message || "Unable to load report");
+            return;
+        }
+
+        lastData = data;
+
+        renderSummary(data.summary);
+        renderServices(data.services);
+        renderDaily(data.dailyData);
+        renderPagination(data.pagination);
+        renderRevenueChart(data.dailyData);
+        renderServiceChart(data.services);
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Unable to connect to server.");
+
+    }
+}
+
+function renderSummary(summary) {
+
+    document.getElementById("totalRevenue").textContent =
+        money(summary.totalRevenue);
+
+    document.getElementById("totalActivations").textContent =
+        number(summary.totalActivations);
+
+    document.getElementById("totalRenewals").textContent =
+        number(summary.totalRenewals);
+
+    document.getElementById("totalTransactions").textContent =
+        number(summary.totalTransactions);
+
+    document.getElementById("yumzzyRevenue").textContent =
+        money(summary.yumzzyRevenue);
+
+    document.getElementById("eduwavRevenue").textContent =
+        money(summary.eduwavRevenue);
+
+    const total = Number(summary.totalRevenue) || 0;
+
+    document.getElementById("yumzzyPercent").textContent =
+        total > 0
+            ? ((summary.yumzzyRevenue / total) * 100).toFixed(1) + "%"
+            : "0%";
+
+    document.getElementById("eduwavPercent").textContent =
+        total > 0
+            ? ((summary.eduwavRevenue / total) * 100).toFixed(1) + "%"
+            : "0%";
+}
+
+function renderServices(services) {
+
+    const tbody =
+        document.getElementById("serviceTable");
+
+    tbody.innerHTML = "";
+
+    if (!services.length) {
+
+        tbody.innerHTML =
+            `<tr><td colspan="6" class="empty">No data found</td></tr>`;
+
+        return;
+    }
+
+    services.forEach(service => {
+
+        const serviceClass =
+            service.service.toLowerCase() === "yumzzy"
+                ? "service-y"
+                : "service-e";
+
+        tbody.innerHTML += `
+            <tr>
+                <td>
+                    <div class="service-name">
+                        <span class="${serviceClass}">
+                            ${service.service.charAt(0)}
+                        </span>
+                        <strong>${service.service}</strong>
+                    </div>
+                </td>
+                <td>${number(service.activations)}</td>
+                <td>${number(service.renewals)}</td>
+                <td>${number(service.transactions)}</td>
+                <td class="revenue-cell">
+                    ${money(service.revenue)}
+                </td>
+                <td>
+                    <div class="share-cell">
+                        <div class="progress">
+                            <span style="width:${service.percentage}%"></span>
+                        </div>
+                        <small>${service.percentage.toFixed(1)}%</small>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function renderDaily(rows) {
+
+    const tbody =
+        document.getElementById("dailyTable");
+
+    tbody.innerHTML = "";
+
+    if (!rows.length) {
+
+        tbody.innerHTML =
+            `<tr><td colspan="5" class="empty">No data found</td></tr>`;
+
+        return;
+    }
+
+    rows.forEach(row => {
+
+        const date =
+            new Date(row.report_date + "T00:00:00");
+
+        const formattedDate =
+            date.toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+            });
+
+        tbody.innerHTML += `
+            <tr>
+                <td>
+                    <strong>${formattedDate}</strong>
+                </td>
+                <td>${number(row.activations)}</td>
+                <td>${number(row.renewals)}</td>
+                <td>${number(row.transactions)}</td>
+                <td class="revenue-cell">
+                    ${money(row.revenue)}
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function renderPagination(pagination) {
+
+    const info =
+        document.getElementById("paginationInfo");
+
+    const pageNumbers =
+        document.getElementById("pageNumbers");
+
+    const prev =
+        document.getElementById("prevButton");
+
+    const next =
+        document.getElementById("nextButton");
+
+    if (!pagination.totalDays) {
+
+        info.textContent = "No days found";
+        pageNumbers.innerHTML = "";
+        prev.disabled = true;
+        next.disabled = true;
+
+        return;
+    }
+
+    info.textContent =
+        `Page ${pagination.currentPage} of ${Math.max(pagination.totalPages, 1)}
+         • ${pagination.totalDays} day(s)`;
+
+    prev.disabled =
+        pagination.currentPage <= 1;
+
+    next.disabled =
+        pagination.currentPage >= pagination.totalPages;
+
+    pageNumbers.innerHTML = "";
+
+    const total =
+        pagination.totalPages;
+
+    const current =
+        pagination.currentPage;
+
+    for (let i = 1; i <= total; i++) {
+
+        if (
+            total > 7 &&
+            i !== 1 &&
+            i !== total &&
+            Math.abs(i - current) > 2
+        ) {
+
+            if (
+                i === current - 3 ||
+                i === current + 3
+            ) {
+                pageNumbers.innerHTML +=
+                    `<span class="dots">…</span>`;
+            }
+
+            continue;
+        }
+
+        pageNumbers.innerHTML += `
+            <button
+                class="${i === current ? "active-page" : ""}"
+                onclick="loadDashboard(${i})">
+                ${i}
+            </button>
+        `;
+    }
+}
+
+function changePage(direction) {
+
+    if (!lastData) return;
+
+    const pagination =
+        lastData.pagination;
+
+    const nextPage =
+        pagination.currentPage + direction;
+
+    if (
+        nextPage >= 1 &&
+        nextPage <= pagination.totalPages
+    ) {
+        loadDashboard(nextPage);
+    }
+}
+
+function renderRevenueChart(rows) {
+
+    const ctx =
+        document
+            .getElementById("revenueChart")
+            .getContext("2d");
+
+    const ordered =
+        [...rows].reverse();
+
+    const labels =
+        ordered.map(row => {
+
+            const d =
+                new Date(
+                    row.report_date + "T00:00:00"
+                );
+
+            return d.toLocaleDateString(
+                "en-IN",
+                {
+                    day: "2-digit",
+                    month: "short"
+                }
+            );
+
+        });
+
+    const values =
+        ordered.map(
+            row => Number(row.revenue) || 0
+        );
+
+    if (revenueChart) {
+        revenueChart.destroy();
+    }
+
+    revenueChart =
+        new Chart(ctx, {
+
+            type: "line",
+
+            data: {
+
+                labels,
+
+                datasets: [{
+
+                    label: "Revenue",
+
+                    data: values,
+
+                    borderWidth: 3,
+
+                    tension: 0.4,
+
+                    fill: true,
+
+                    pointRadius: 4,
+
+                    pointHoverRadius: 7
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                interaction: {
+                    intersect: false,
+                    mode: "index"
+                },
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    },
+
+                    tooltip: {
+
+                        callbacks: {
+
+                            label: context =>
+                                " Revenue: " +
+                                money(context.raw)
+
+                        }
+
+                    }
+
+                },
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+
+                            callback: value =>
+                                "₹" +
+                                Number(value)
+                                    .toLocaleString("en-IN")
+
+                        },
+
+                        grid: {
+                            drawBorder: false
+                        }
+
+                    },
+
+                    x: {
+
+                        grid: {
+                            display: false
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+}
+
+function renderServiceChart(services) {
+
+    const ctx =
+        document
+            .getElementById("serviceChart")
+            .getContext("2d");
+
+    const labels =
+        services.map(
+            service => service.service
+        );
+
+    const values =
+        services.map(
+            service => Number(service.revenue) || 0
+        );
+
+    if (serviceChart) {
+        serviceChart.destroy();
+    }
+
+    serviceChart =
+        new Chart(ctx, {
+
+            type: "doughnut",
+
+            data: {
+
+                labels,
+
+                datasets: [{
+
+                    data: values,
+
+                    borderWidth: 4
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                cutout: "68%",
+
+                plugins: {
+
+                    legend: {
+
+                        position: "bottom",
+
+                        labels: {
+                            padding: 20
+                        }
+
+                    },
+
+                    tooltip: {
+
+                        callbacks: {
+
+                            label: context =>
+                                " " +
+                                context.label +
+                                ": " +
+                                money(context.raw)
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+}
+
+function exportCSV() {
+
+    if (!lastData || !lastData.details.length) {
+
+        alert("No data available to export.");
+
+        return;
+    }
+
+    const rows =
+        lastData.details;
+
+    let csv =
+        "Date,Service,Bundle ID,Activations,Renewals,Transactions,Revenue\n";
+
+    rows.forEach(row => {
+
+        csv += [
+            row.report_date,
+            row.service,
+            row.bundle_id,
+            row.activations,
+            row.renewals,
+            row.total_transactions,
+            Number(row.total_amount || 0).toFixed(2)
+        ].join(",") + "\n";
+
+    });
+
+    const blob =
+        new Blob(
+            [csv],
+            { type: "text/csv;charset=utf-8;" }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+        `hutch-revenue-${document.getElementById("startDate").value}-${document.getElementById("endDate").value}.csv`;
+
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+
+document
+    .getElementById("limit")
+    .addEventListener("change", () => {
+        loadDashboard(1);
+    });
+
+loadDashboard(1);
+</script>
+
+</body>
+</html>
