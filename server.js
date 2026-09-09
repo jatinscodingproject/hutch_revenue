@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const express = require("express");
 const path = require("path");
 const mysql = require("mysql2/promise");
@@ -42,14 +41,12 @@ app.use(session({
 
 function requireLogin(req, res, next) {
     if (req.session && req.session.user) return next();
-
     if (req.originalUrl.startsWith("/api/")) {
         return res.status(401).json({
             success: false,
             message: "Unauthorized. Please login."
         });
     }
-
     return res.redirect("/login");
 }
 
@@ -62,42 +59,34 @@ app.post("/login", async (req, res) => {
     try {
         const username = String(req.body.username || "").trim().toLowerCase();
         const password = String(req.body.password || "");
-
         if (!username || !password) {
             return res.render("login", {
                 error: "Username and password are required."
             });
         }
-
         const [users] = await pool.execute(`
             SELECT id, username, password, role, status
             FROM dashboard_users
             WHERE username = ?
             LIMIT 1
         `, [username]);
-
         if (!users.length) {
             return res.render("login", {
                 error: "Invalid username or password."
             });
         }
-
         const user = users[0];
-
         if (Number(user.status) !== 1) {
             return res.render("login", {
                 error: "Your account has been disabled."
             });
         }
-
         const valid = await bcrypt.compare(password, user.password);
-
         if (!valid) {
             return res.render("login", {
                 error: "Invalid username or password."
             });
         }
-
         req.session.regenerate(err => {
             if (err) {
                 console.error(err);
@@ -157,34 +146,13 @@ app.get("/", requireLogin, (req, res) => {
         endDate
     });
 });
+
 app.get("/api/revenue", requireLogin, async (req, res) => {
     try {
-
-        /*
-        |--------------------------------------------------------------------------
-        | CURRENT MONTH DEFAULT
-        |--------------------------------------------------------------------------
-        |
-        | If user does not send dates:
-        |
-        | startDate = 1st day of current month
-        | endDate   = last day of current month
-        |
-        | User can override both dates using query parameters.
-        |
-        |--------------------------------------------------------------------------
-        */
-
         const now = new Date();
-
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth();
-
-        // First day of current month
-        const defaultStartDate =
-            `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
-
-        // Last day of current month
+        const defaultStartDate =`${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
         const lastDay =
             new Date(
                 currentYear,
@@ -196,12 +164,6 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | USER FILTER
-        |--------------------------------------------------------------------------
-        */
-
         let startDate =
             req.query.startDate ||
             defaultStartDate;
@@ -210,19 +172,11 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             req.query.endDate ||
             defaultEndDate;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | PAGINATION
-        |--------------------------------------------------------------------------
-        */
-
         let page =
             parseInt(req.query.page) || 1;
 
         let limit =
             parseInt(req.query.limit) || 10;
-
 
         if (page < 1) {
             page = 1;
@@ -236,13 +190,6 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             limit = 100;
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | DATE VALIDATION
-        |--------------------------------------------------------------------------
-        */
-
         const dateRegex =
             /^\d{4}-\d{2}-\d{2}$/;
 
@@ -251,63 +198,24 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             !dateRegex.test(startDate) ||
             !dateRegex.test(endDate)
         ) {
-
             return res.status(400).json({
-
                 success: false,
-
                 message:
                     "Invalid date format. Use YYYY-MM-DD."
 
             });
-
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | CHECK START <= END
-        |--------------------------------------------------------------------------
-        */
-
         if (startDate > endDate) {
-
             return res.status(400).json({
-
                 success: false,
-
                 message:
                     "Start date cannot be greater than end date."
 
             });
-
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | MYSQL DATE RANGE
-        |--------------------------------------------------------------------------
-        |
-        | Example:
-        |
-        | startDate = 2026-09-01
-        | endDate   = 2026-09-30
-        |
-        | Query:
-        |
-        | >= 2026-09-01 00:00:00
-        | <  2026-10-01 00:00:00
-        |
-        | This includes the complete end date.
-        |
-        |--------------------------------------------------------------------------
-        */
-
-        const startDateTime =
-            `${startDate} 00:00:00`;
-
-
+        const startDateTime = `${startDate} 00:00:00`;
         const endDateObject =
             new Date(
                 Number(endDate.substring(0, 4)),
@@ -315,11 +223,9 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
                 Number(endDate.substring(8, 10))
             );
 
-
         endDateObject.setDate(
             endDateObject.getDate() + 1
         );
-
 
         const endDateFormatted =
             `${endDateObject.getFullYear()}-${String(
@@ -332,37 +238,21 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
         const endDateTime =
             `${endDateFormatted} 00:00:00`;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | MAIN REVENUE QUERY
-        |--------------------------------------------------------------------------
-        */
-
         const query = `
-
             SELECT
-
                 DATE(createdAt) AS report_date,
-
                 CASE
-
                     WHEN bundle_id = 1235
                         THEN 'Yumzzy'
-
                     WHEN bundle_id = 1237
                         THEN 'Eduwav'
-
                     ELSE
                         CONCAT(
                             'Bundle ',
                             bundle_id
                         )
-
                 END AS service,
-
                 bundle_id,
-
                 SUM(
                     CASE
                         WHEN event_id = 1
@@ -370,6 +260,14 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
                         ELSE 0
                     END
                 ) AS activations,
+                SUM(
+                    CASE
+                        WHEN event_id = 1
+                        AND charge_result = 1
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS paid_activations,
 
                 SUM(
                     CASE
@@ -378,7 +276,6 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
                         ELSE 0
                     END
                 ) AS renewals,
-
                 SUM(
                     CASE
                         WHEN event_id IN (1, 3)
@@ -389,39 +286,34 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
 
                 COUNT(*) AS total_transactions
 
+
             FROM
                 hutch_new_portals.hutch_callback_logs
 
+
             WHERE
-
                 createdAt >= ?
-
                 AND createdAt < ?
-
                 AND bundle_id IN (
                     1235,
                     1237
                 )
-
                 AND event_id IN (
                     1,
                     3
                 )
-
             GROUP BY
-
                 DATE(createdAt),
-
                 bundle_id
-
             ORDER BY
-
                 report_date DESC,
-
                 bundle_id ASC
-
         `;
 
+
+        // =========================================================
+        // EXECUTE QUERY
+        // =========================================================
 
         const [rows] =
             await pool.execute(
@@ -433,15 +325,15 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL SUMMARY
-        |--------------------------------------------------------------------------
-        */
+        // =========================================================
+        // SUMMARY VARIABLES
+        // =========================================================
 
         let totalRevenue = 0;
 
         let totalActivations = 0;
+
+        let totalPaidActivations = 0;
 
         let totalRenewals = 0;
 
@@ -457,52 +349,47 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             const revenue =
                 Number(row.total_amount) || 0;
 
+
             const activations =
                 Number(row.activations) || 0;
+
+
+            const paidActivations =
+                Number(row.paid_activations) || 0;
+
 
             const renewals =
                 Number(row.renewals) || 0;
 
+
             const transactions =
                 Number(row.total_transactions) || 0;
 
-
             totalRevenue += revenue;
-
             totalActivations += activations;
-
+            totalPaidActivations += paidActivations;
             totalRenewals += renewals;
-
             totalTransactions += transactions;
 
+            if (row.service === "Yumzzy") {
 
-            if (
-                row.service === "Yumzzy"
-            ) {
-
-                yumzzyRevenue +=
-                    revenue;
+                yumzzyRevenue += revenue;
 
             }
 
 
-            if (
-                row.service === "Eduwav"
-            ) {
+            if (row.service === "Eduwav") {
 
-                eduwavRevenue +=
-                    revenue;
+                eduwavRevenue += revenue;
 
             }
 
         });
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | DAY-WISE DATA
-        |--------------------------------------------------------------------------
-        */
+        // =========================================================
+        // DAY-WISE DATA
+        // =========================================================
 
         const dayMap = {};
 
@@ -523,6 +410,8 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
 
                     activations: 0,
 
+                    paidActivations: 0,
+
                     renewals: 0,
 
                     transactions: 0
@@ -532,17 +421,41 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             }
 
 
+            // -----------------------------------------------------
+            // Revenue
+            // -----------------------------------------------------
+
             dayMap[date].revenue +=
                 Number(row.total_amount) || 0;
 
+
+            // -----------------------------------------------------
+            // Activations
+            // -----------------------------------------------------
 
             dayMap[date].activations +=
                 Number(row.activations) || 0;
 
 
+            // -----------------------------------------------------
+            // Paid Activations
+            // -----------------------------------------------------
+
+            dayMap[date].paidActivations +=
+                Number(row.paid_activations) || 0;
+
+
+            // -----------------------------------------------------
+            // Renewals
+            // -----------------------------------------------------
+
             dayMap[date].renewals +=
                 Number(row.renewals) || 0;
 
+
+            // -----------------------------------------------------
+            // Transactions
+            // -----------------------------------------------------
 
             dayMap[date].transactions +=
                 Number(row.total_transactions) || 0;
@@ -554,11 +467,9 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             Object.values(dayMap);
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | PAGINATION
-        |--------------------------------------------------------------------------
-        */
+        // =========================================================
+        // PAGINATION
+        // =========================================================
 
         const totalDays =
             dailyData.length;
@@ -581,11 +492,9 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | SERVICE-WISE DATA
-        |--------------------------------------------------------------------------
-        */
+        // =========================================================
+        // SERVICE-WISE DATA
+        // =========================================================
 
         const serviceMap = {};
 
@@ -606,6 +515,8 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
 
                     activations: 0,
 
+                    paidActivations: 0,
+
                     renewals: 0,
 
                     transactions: 0
@@ -615,17 +526,41 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             }
 
 
+            // -----------------------------------------------------
+            // Revenue
+            // -----------------------------------------------------
+
             serviceMap[service].revenue +=
                 Number(row.total_amount) || 0;
 
+
+            // -----------------------------------------------------
+            // Activations
+            // -----------------------------------------------------
 
             serviceMap[service].activations +=
                 Number(row.activations) || 0;
 
 
+            // -----------------------------------------------------
+            // Paid Activations
+            // -----------------------------------------------------
+
+            serviceMap[service].paidActivations +=
+                Number(row.paid_activations) || 0;
+
+
+            // -----------------------------------------------------
+            // Renewals
+            // -----------------------------------------------------
+
             serviceMap[service].renewals +=
                 Number(row.renewals) || 0;
 
+
+            // -----------------------------------------------------
+            // Transactions
+            // -----------------------------------------------------
 
             serviceMap[service].transactions +=
                 Number(row.total_transactions) || 0;
@@ -633,11 +568,9 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
         });
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | SERVICE PERCENTAGE
-        |--------------------------------------------------------------------------
-        */
+        // =========================================================
+        // SERVICE PERCENTAGE
+        // =========================================================
 
         const services =
             Object.values(
@@ -659,15 +592,18 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             }));
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | RESPONSE
-        |--------------------------------------------------------------------------
-        */
+        // =========================================================
+        // RESPONSE
+        // =========================================================
 
         return res.json({
 
             success: true,
+
+
+            // =====================================================
+            // FILTERS
+            // =====================================================
 
             filters: {
 
@@ -681,6 +617,11 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
 
             },
 
+
+            // =====================================================
+            // SUMMARY
+            // =====================================================
+
             summary: {
 
                 totalRevenue:
@@ -688,16 +629,26 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
                         totalRevenue.toFixed(2)
                     ),
 
+
+                // All event_id = 1
                 totalActivations,
+
+
+                // event_id = 1 AND chargeResult = TRUE
+                totalPaidActivations,
+
 
                 totalRenewals,
 
+
                 totalTransactions,
+
 
                 yumzzyRevenue:
                     Number(
                         yumzzyRevenue.toFixed(2)
                     ),
+
 
                 eduwavRevenue:
                     Number(
@@ -706,23 +657,46 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
 
             },
 
+
+            // =====================================================
+            // SERVICE DATA
+            // =====================================================
+
             services,
+
+
+            // =====================================================
+            // DAY-WISE DATA
+            // =====================================================
 
             dailyData:
                 paginatedDaily,
 
+
+            // =====================================================
+            // COMPLETE DETAILS
+            // =====================================================
+
             details:
                 rows,
+
+
+            // =====================================================
+            // PAGINATION
+            // =====================================================
 
             pagination: {
 
                 currentPage:
                     page,
 
+
                 perPage:
                     limit,
 
+
                 totalDays,
+
 
                 totalPages
 
@@ -732,26 +706,11 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
 
 
     } catch (error) {
-
-        console.error(
-            "REVENUE API ERROR:",
-            error
-        );
-
-        return res.status(
-            500
-        ).json({
-
+        return res.status(500).json({
             success: false,
-
-            message:
-                "Unable to fetch revenue data.",
-
-            error:
-                error.message
-
+            message:"Unable to fetch revenue data.",
+            error: error.message
         });
-
     }
 });
 

@@ -6,10 +6,302 @@
     <title>Hutch Revenue Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/style.css">
+
+<style id="dashboard-responsive-additions">
+/* =========================================================
+   RESPONSIVE ADDITIONS
+   Uses the existing /style.css design.
+   ========================================================= */
+
+.mobile-menu-btn,
+.sidebar-overlay {
+    display: none;
+}
+
+.paid-activation-card .paid-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(34, 197, 94, .12);
+    color: #16a34a;
+    font-weight: 800;
+}
+
+.paid-tag {
+    color: #16a34a;
+    background: rgba(34, 197, 94, .10);
+}
+
+@media (max-width: 1100px) {
+    .sidebar {
+        width: 220px !important;
+    }
+
+    .main {
+        margin-left: 220px !important;
+        width: calc(100% - 220px) !important;
+        min-width: 0 !important;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .chart-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden !important;
+    }
+
+    body.menu-open {
+        overflow: hidden !important;
+    }
+
+    .app {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .main {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
+
+    /* Existing sidebar becomes a drawer. */
+    .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: -280px !important;
+
+        width: 260px !important;
+        max-width: 85vw !important;
+        height: 100vh !important;
+
+        margin: 0 !important;
+        z-index: 10000 !important;
+
+        transition: left .3s ease !important;
+        overflow-y: auto !important;
+    }
+
+    .sidebar.mobile-open {
+        left: 0 !important;
+    }
+
+    /* Mobile overlay. */
+    .sidebar-overlay {
+        display: block !important;
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 9999 !important;
+
+        background: rgba(0,0,0,.55) !important;
+
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+
+        transition:
+            opacity .25s ease,
+            visibility .25s ease !important;
+    }
+
+    .sidebar-overlay.active {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+
+    /* Top bar. */
+    .topbar {
+        width: 100% !important;
+        min-width: 0 !important;
+
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+    }
+
+    .mobile-menu-btn {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        flex: 0 0 42px !important;
+        width: 42px !important;
+        height: 42px !important;
+
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 10px !important;
+
+        background: #111827 !important;
+        color: #fff !important;
+
+        font-size: 22px !important;
+        cursor: pointer !important;
+    }
+
+    .topbar > div:first-of-type {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+
+    .topbar h1 {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .topbar p {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* Filters. */
+    .filter-card {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .filters {
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+    }
+
+    .filter-field,
+    .filter-field input,
+    .filter-field select,
+    .generate-button {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Cards. */
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        width: 100% !important;
+    }
+
+    .stat-card {
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .stat-value {
+        max-width: 100% !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .service-summary {
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+    }
+
+    /* Charts. */
+    .chart-grid {
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+    }
+
+    .panel,
+    .chart-area,
+    .pie-area {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* Wide tables scroll instead of breaking the page. */
+    .table-wrap {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .table-wrap table {
+        min-width: 760px !important;
+    }
+
+    .table-wrap th,
+    .table-wrap td {
+        white-space: nowrap !important;
+    }
+
+    .table-panel {
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    .pagination {
+        flex-wrap: wrap !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .main {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .mobile-menu-btn {
+        flex-basis: 38px !important;
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 20px !important;
+    }
+
+    .live {
+        display: none !important;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .table-wrap table {
+        min-width: 760px !important;
+    }
+
+    .table-panel > .panel-header {
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+
+    .export-button {
+        width: 100% !important;
+    }
+}
+</style>
+
 </head>
 <body>
 
 <div class="app">
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <aside class="sidebar">
         <div class="brand">
@@ -48,6 +340,10 @@
     <main class="main">
 
         <header class="topbar">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" type="button"
+                    aria-label="Open menu" aria-expanded="false">
+                ☰
+            </button>
             <div>
                 <h1>Revenue Dashboard</h1>
                 <p>Yumzzy & Eduwav performance overview</p>
@@ -119,6 +415,16 @@
                 <div class="stat-label">Total Activations</div>
                 <div class="stat-value" id="totalActivations">0</div>
                 <div class="stat-note">New subscriptions</div>
+            </div>
+
+            <div class="stat-card paid-activation-card">
+                <div class="stat-card-top">
+                    <div class="stat-icon paid-icon">✓</div>
+                    <span class="tag paid-tag">PAID</span>
+                </div>
+                <div class="stat-label">Paid Activations</div>
+                <div class="stat-value" id="totalPaidActivations">0</div>
+                <div class="stat-note">event_id = 1 & chargeResult = true</div>
             </div>
 
             <div class="stat-card">
@@ -211,6 +517,7 @@
                         <tr>
                             <th>Service</th>
                             <th>Activations</th>
+                            <th>Paid Activations</th>
                             <th>Renewals</th>
                             <th>Transactions</th>
                             <th>Revenue</th>
@@ -224,7 +531,6 @@
         </section>
 
         <section class="panel table-panel">
-
             <div class="panel-header">
                 <div>
                     <h3>Day-wise Revenue</h3>
@@ -242,6 +548,7 @@
                         <tr>
                             <th>Date</th>
                             <th>Activations</th>
+                            <th>PAID ACTIVATIONS</th>
                             <th>Renewals</th>
                             <th>Transactions</th>
                             <th>Revenue</th>
@@ -347,6 +654,9 @@ function renderSummary(summary) {
     document.getElementById("totalActivations").textContent =
         number(summary.totalActivations);
 
+    document.getElementById("totalPaidActivations").textContent =
+        number(summary.totalPaidActivations ?? 0);
+
     document.getElementById("totalRenewals").textContent =
         number(summary.totalRenewals);
 
@@ -373,22 +683,15 @@ function renderSummary(summary) {
 }
 
 function renderServices(services) {
-
-    const tbody =
-        document.getElementById("serviceTable");
-
+    const tbody =document.getElementById("serviceTable");
     tbody.innerHTML = "";
-
     if (!services.length) {
-
         tbody.innerHTML =
             `<tr><td colspan="6" class="empty">No data found</td></tr>`;
-
         return;
     }
 
     services.forEach(service => {
-
         const serviceClass =
             service.service.toLowerCase() === "yumzzy"
                 ? "service-y"
@@ -405,6 +708,7 @@ function renderServices(services) {
                     </div>
                 </td>
                 <td>${number(service.activations)}</td>
+                <td>${number(service.paidActivations ?? service.paid_activations ?? 0)}</td>
                 <td>${number(service.renewals)}</td>
                 <td>${number(service.transactions)}</td>
                 <td class="revenue-cell">
@@ -456,6 +760,7 @@ function renderDaily(rows) {
                     <strong>${formattedDate}</strong>
                 </td>
                 <td>${number(row.activations)}</td>
+                <td>${number(row.paidActivations ?? row.paid_activations ?? 0)}</td>
                 <td>${number(row.renewals)}</td>
                 <td>${number(row.transactions)}</td>
                 <td class="revenue-cell">
@@ -783,7 +1088,7 @@ function exportCSV() {
         lastData.details;
 
     let csv =
-        "Date,Service,Bundle ID,Activations,Renewals,Transactions,Revenue\n";
+        "Date,Service,Bundle ID,Activations,Paid Activations,Renewals,Transactions,Revenue\n";
 
     rows.forEach(row => {
 
@@ -792,6 +1097,7 @@ function exportCSV() {
             row.service,
             row.bundle_id,
             row.activations,
+            row.paid_activations ?? row.paidActivations ?? 0,
             row.renewals,
             row.total_transactions,
             Number(row.total_amount || 0).toFixed(2)
@@ -826,6 +1132,94 @@ document
     .addEventListener("change", () => {
         loadDashboard(1);
     });
+
+
+/* =========================================================
+   MOBILE SIDEBAR
+   ========================================================= */
+
+(function () {
+    const mobileMenuBtn =
+        document.getElementById("mobileMenuBtn");
+
+    const sidebar =
+        document.querySelector(".sidebar");
+
+    const sidebarOverlay =
+        document.getElementById("sidebarOverlay");
+
+    function openMobileMenu() {
+        if (sidebar) {
+            sidebar.classList.add("mobile-open");
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.classList.add("active");
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.textContent = "✕";
+            mobileMenuBtn.setAttribute("aria-expanded", "true");
+            mobileMenuBtn.setAttribute("aria-label", "Close menu");
+        }
+
+        document.body.classList.add("menu-open");
+    }
+
+    function closeMobileMenu() {
+        if (sidebar) {
+            sidebar.classList.remove("mobile-open");
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.classList.remove("active");
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.textContent = "☰";
+            mobileMenuBtn.setAttribute("aria-expanded", "false");
+            mobileMenuBtn.setAttribute("aria-label", "Open menu");
+        }
+
+        document.body.classList.remove("menu-open");
+    }
+
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener("click", function () {
+            if (
+                sidebar &&
+                sidebar.classList.contains("mobile-open")
+            ) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener(
+            "click",
+            closeMobileMenu
+        );
+    }
+
+    document.querySelectorAll(".sidebar a").forEach(function (link) {
+        link.addEventListener("click", closeMobileMenu);
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeMobileMenu();
+        }
+    });
+
+    window.addEventListener("resize", function () {
+        if (window.innerWidth > 768) {
+            closeMobileMenu();
+        }
+    });
+})();
 
 loadDashboard(1);
 </script>
