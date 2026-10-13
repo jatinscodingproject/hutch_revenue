@@ -246,6 +246,8 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
                         THEN 'Yumzzy'
                     WHEN bundle_id = 1237
                         THEN 'Eduwav'
+                    WHEN bundle_id = 1307
+                        THEN 'Radiofyy'
                     ELSE
                         CONCAT(
                             'Bundle ',
@@ -296,7 +298,8 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
                 AND createdAt < ?
                 AND bundle_id IN (
                     1235,
-                    1237
+                    1237,
+                    1307
                 )
                 AND event_id IN (
                     1,
@@ -342,7 +345,7 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
         let yumzzyRevenue = 0;
 
         let eduwavRevenue = 0;
-
+        let radiofyyRevenue = 0;
 
         rows.forEach(row => {
 
@@ -382,6 +385,10 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
 
                 eduwavRevenue += revenue;
 
+            }
+
+            if (row.service === "Radiofyy") {
+                radiofyyRevenue += revenue;
             }
 
         });
@@ -653,7 +660,9 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
                 eduwavRevenue:
                     Number(
                         eduwavRevenue.toFixed(2)
-                    )
+                    ),
+
+                radiofyyRevenue: Number(radiofyyRevenue.toFixed(2))
 
             },
 

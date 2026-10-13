@@ -28,6 +28,38 @@
     background: rgba(34, 197, 94, .10);
 }
 
+/* =========================================================
+   RADIOFYY ADDITIONS
+   ========================================================= */
+
+/* Three service cards on desktop */
+.service-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Radiofyy card: copy any extra rules from .eduwav-box / .yumzzy-box here */
+.radiofyy-box .service-logo {
+    background: linear-gradient(135deg, #ec4899, #be185d);
+    color: #fff;
+}
+
+.radiofyy-box .service-percent {
+    color: #be185d;
+}
+
+/* Service table icon */
+.service-r {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(236, 72, 153, .12);
+    color: #be185d;
+    font-weight: 800;
+}
+
 @media (max-width: 1100px) {
     .sidebar {
         width: 220px !important;
@@ -342,7 +374,7 @@
             </button>
             <div>
                 <h1>Revenue Dashboard</h1>
-                <p>Yumzzy & Eduwav performance overview</p>
+                <p>Yumzzy, Eduwav & Radiofyy performance overview</p>
             </div>
 
             <div class="topbar-right">
@@ -465,6 +497,16 @@
                     <small>Service Revenue</small>
                 </div>
                 <div class="service-percent" id="eduwavPercent">0%</div>
+            </div>
+
+            <div class="service-box radiofyy-box">
+                <div class="service-logo">R</div>
+                <div class="service-info">
+                    <span>RADIOFYY</span>
+                    <strong id="radiofyyRevenue">₹0.00</strong>
+                    <small>Service Revenue</small>
+                </div>
+                <div class="service-percent" id="radiofyyPercent">0%</div>
             </div>
 
         </section>
@@ -665,6 +707,9 @@ function renderSummary(summary) {
     document.getElementById("eduwavRevenue").textContent =
         money(summary.eduwavRevenue);
 
+    document.getElementById("radiofyyRevenue").textContent =
+        money(summary.radiofyyRevenue);
+
     const total = Number(summary.totalRevenue) || 0;
 
     document.getElementById("yumzzyPercent").textContent =
@@ -676,22 +721,29 @@ function renderSummary(summary) {
         total > 0
             ? ((summary.eduwavRevenue / total) * 100).toFixed(1) + "%"
             : "0%";
+
+    document.getElementById("radiofyyPercent").textContent =
+        total > 0
+            ? ((summary.radiofyyRevenue / total) * 100).toFixed(1) + "%"
+            : "0%";
 }
 
 function renderServices(services) {
-    const tbody =document.getElementById("serviceTable");
+    const tbody = document.getElementById("serviceTable");
     tbody.innerHTML = "";
     if (!services.length) {
         tbody.innerHTML =
-            `<tr><td colspan="6" class="empty">No data found</td></tr>`;
+            `<tr><td colspan="7" class="empty">No data found</td></tr>`;
         return;
     }
 
     services.forEach(service => {
+        const name = service.service.toLowerCase();
         const serviceClass =
-            service.service.toLowerCase() === "yumzzy"
-                ? "service-y"
-                : "service-e";
+            name === "yumzzy"   ? "service-y" :
+            name === "eduwav"   ? "service-e" :
+            name === "radiofyy" ? "service-r" :
+                                  "service-e";
 
         tbody.innerHTML += `
             <tr>
@@ -733,7 +785,7 @@ function renderDaily(rows) {
     if (!rows.length) {
 
         tbody.innerHTML =
-            `<tr><td colspan="5" class="empty">No data found</td></tr>`;
+            `<tr><td colspan="6" class="empty">No data found</td></tr>`;
 
         return;
     }
@@ -1007,6 +1059,13 @@ function renderServiceChart(services) {
             service => Number(service.revenue) || 0
         );
 
+    // Stable colors per service
+    const colorMap = {
+        Yumzzy: "#f59e0b",
+        Eduwav: "#3b82f6",
+        Radiofyy: "#ec4899"
+    };
+
     if (serviceChart) {
         serviceChart.destroy();
     }
@@ -1023,6 +1082,9 @@ function renderServiceChart(services) {
                 datasets: [{
 
                     data: values,
+
+                    backgroundColor:
+                        labels.map(l => colorMap[l] || "#94a3b8"),
 
                     borderWidth: 4
 
