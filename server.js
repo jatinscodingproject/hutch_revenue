@@ -152,80 +152,54 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth();
-        const defaultStartDate =`${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
-        const lastDay =
-            new Date(
-                currentYear,
-                currentMonth + 1,
-                0
-            ).getDate();
+
+        const defaultStartDate =
+            `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
+
+        const lastDay = new Date(
+            currentYear,
+            currentMonth + 1,
+            0
+        ).getDate();
 
         const defaultEndDate =
             `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 
+        let startDate = req.query.startDate || defaultStartDate;
+        let endDate = req.query.endDate || defaultEndDate;
 
-        let startDate =
-            req.query.startDate ||
-            defaultStartDate;
+        let page = parseInt(req.query.page) || 1;
+        let limit = parseInt(req.query.limit) || 10;
 
-        let endDate =
-            req.query.endDate ||
-            defaultEndDate;
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 10;
+        if (limit > 100) limit = 100;
 
-        let page =
-            parseInt(req.query.page) || 1;
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-        let limit =
-            parseInt(req.query.limit) || 10;
-
-        if (page < 1) {
-            page = 1;
-        }
-
-        if (limit < 1) {
-            limit = 10;
-        }
-
-        if (limit > 100) {
-            limit = 100;
-        }
-
-        const dateRegex =
-            /^\d{4}-\d{2}-\d{2}$/;
-
-
-        if (
-            !dateRegex.test(startDate) ||
-            !dateRegex.test(endDate)
-        ) {
+        if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "Invalid date format. Use YYYY-MM-DD."
-
+                message: "Invalid date format. Use YYYY-MM-DD."
             });
         }
 
         if (startDate > endDate) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "Start date cannot be greater than end date."
-
+                message: "Start date cannot be greater than end date."
             });
         }
 
         const startDateTime = `${startDate} 00:00:00`;
-        const endDateObject =
-            new Date(
-                Number(endDate.substring(0, 4)),
-                Number(endDate.substring(5, 7)) - 1,
-                Number(endDate.substring(8, 10))
-            );
 
-        endDateObject.setDate(
-            endDateObject.getDate() + 1
+        const endDateObject = new Date(
+            Number(endDate.substring(0, 4)),
+            Number(endDate.substring(5, 7)) - 1,
+            Number(endDate.substring(8, 10))
         );
+
+        endDateObject.setDate(endDateObject.getDate() + 1);
 
         const endDateFormatted =
             `${endDateObject.getFullYear()}-${String(
@@ -234,139 +208,107 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
                 endDateObject.getDate()
             ).padStart(2, "0")}`;
 
+        const endDateTime = `${endDateFormatted} 00:00:00`;
 
-        const endDateTime =
-            `${endDateFormatted} 00:00:00`;
+        // =========================================================
+        // SQL QUERY
+        // =========================================================
 
         const query = `
             SELECT
                 DATE(createdAt) AS report_date,
+
                 CASE
-                    WHEN bundle_id = 1235
-                        THEN 'Yumzzy'
-                    WHEN bundle_id = 1237
-                        THEN 'Eduwav'
-                    WHEN bundle_id = 1307
-                        THEN 'Radiofyy'
-                    ELSE
-                        CONCAT(
-                            'Bundle ',
-                            bundle_id
-                        )
+                    WHEN bundle_id = 1235 THEN 'Yumzzy'
+                    WHEN bundle_id = 1237 THEN 'Eduwav'
+                    WHEN bundle_id = 1307 THEN 'Radiofyy'
+                    WHEN bundle_id = 1305 THEN 'Fitai'
+                    ELSE CONCAT('Bundle ', bundle_id)
                 END AS service,
+
                 bundle_id,
+
                 SUM(
                     CASE
-                        WHEN event_id = 1
-                        THEN 1
+                        WHEN event_id = 1 THEN 1
                         ELSE 0
                     END
                 ) AS activations,
+
                 SUM(
                     CASE
                         WHEN event_id = 1
-                        AND charge_result = 1
-                        THEN 1
+                        AND charge_result = 1 THEN 1
                         ELSE 0
                     END
                 ) AS paid_activations,
 
                 SUM(
                     CASE
-                        WHEN event_id = 3
-                        THEN 1
+                        WHEN event_id = 3 THEN 1
                         ELSE 0
                     END
                 ) AS renewals,
+
                 SUM(
                     CASE
-                        WHEN event_id IN (1, 3)
-                        THEN amount
+                        WHEN event_id IN (1, 3) THEN amount
                         ELSE 0
                     END
                 ) AS total_amount,
 
                 COUNT(*) AS total_transactions
 
-
-            FROM
-                hutch_new_portals.hutch_callback_logs
-
+            FROM hutch_new_portals.hutch_callback_logs
 
             WHERE
                 createdAt >= ?
                 AND createdAt < ?
+
                 AND bundle_id IN (
                     1235,
                     1237,
-                    1307
+                    1307,
+                    1305
                 )
-                AND event_id IN (
-                    1,
-                    3
-                )
+
+                AND event_id IN (1, 3)
+
             GROUP BY
                 DATE(createdAt),
                 bundle_id
+
             ORDER BY
                 report_date DESC,
                 bundle_id ASC
         `;
 
-
-        // =========================================================
-        // EXECUTE QUERY
-        // =========================================================
-
-        const [rows] =
-            await pool.execute(
-                query,
-                [
-                    startDateTime,
-                    endDateTime
-                ]
-            );
-
+        const [rows] = await pool.execute(query, [
+            startDateTime,
+            endDateTime
+        ]);
 
         // =========================================================
         // SUMMARY VARIABLES
         // =========================================================
 
         let totalRevenue = 0;
-
         let totalActivations = 0;
-
         let totalPaidActivations = 0;
-
         let totalRenewals = 0;
-
         let totalTransactions = 0;
 
         let yumzzyRevenue = 0;
-
         let eduwavRevenue = 0;
+        let fitaiRevenue = 0;
         let radiofyyRevenue = 0;
 
         rows.forEach(row => {
-
-            const revenue =
-                Number(row.total_amount) || 0;
-
-
-            const activations =
-                Number(row.activations) || 0;
-
-
-            const paidActivations =
-                Number(row.paid_activations) || 0;
-
-
-            const renewals =
-                Number(row.renewals) || 0;
-
-
-            const transactions =
-                Number(row.total_transactions) || 0;
+            const revenue = Number(row.total_amount) || 0;
+            const activations = Number(row.activations) || 0;
+            const paidActivations = Number(row.paid_activations) || 0;
+            const renewals = Number(row.renewals) || 0;
+            const transactions = Number(row.total_transactions) || 0;
 
             totalRevenue += revenue;
             totalActivations += activations;
@@ -375,24 +317,21 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
             totalTransactions += transactions;
 
             if (row.service === "Yumzzy") {
-
                 yumzzyRevenue += revenue;
-
             }
 
-
             if (row.service === "Eduwav") {
-
                 eduwavRevenue += revenue;
+            }
 
+            if (row.service === "Fitai") {
+                fitaiRevenue += revenue;
             }
 
             if (row.service === "Radiofyy") {
                 radiofyyRevenue += revenue;
             }
-
         });
-
 
         // =========================================================
         // DAY-WISE DATA
@@ -400,104 +339,41 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
 
         const dayMap = {};
 
-
         rows.forEach(row => {
-
-            const date =
-                row.report_date;
-
+            const date = row.report_date;
 
             if (!dayMap[date]) {
-
                 dayMap[date] = {
-
                     report_date: date,
-
                     revenue: 0,
-
                     activations: 0,
-
                     paidActivations: 0,
-
                     renewals: 0,
-
                     transactions: 0
-
                 };
-
             }
 
-
-            // -----------------------------------------------------
-            // Revenue
-            // -----------------------------------------------------
-
-            dayMap[date].revenue +=
-                Number(row.total_amount) || 0;
-
-
-            // -----------------------------------------------------
-            // Activations
-            // -----------------------------------------------------
-
-            dayMap[date].activations +=
-                Number(row.activations) || 0;
-
-
-            // -----------------------------------------------------
-            // Paid Activations
-            // -----------------------------------------------------
-
-            dayMap[date].paidActivations +=
-                Number(row.paid_activations) || 0;
-
-
-            // -----------------------------------------------------
-            // Renewals
-            // -----------------------------------------------------
-
-            dayMap[date].renewals +=
-                Number(row.renewals) || 0;
-
-
-            // -----------------------------------------------------
-            // Transactions
-            // -----------------------------------------------------
-
-            dayMap[date].transactions +=
-                Number(row.total_transactions) || 0;
-
+            dayMap[date].revenue += Number(row.total_amount) || 0;
+            dayMap[date].activations += Number(row.activations) || 0;
+            dayMap[date].paidActivations += Number(row.paid_activations) || 0;
+            dayMap[date].renewals += Number(row.renewals) || 0;
+            dayMap[date].transactions += Number(row.total_transactions) || 0;
         });
 
-
-        const dailyData =
-            Object.values(dayMap);
-
+        const dailyData = Object.values(dayMap);
 
         // =========================================================
         // PAGINATION
         // =========================================================
 
-        const totalDays =
-            dailyData.length;
+        const totalDays = dailyData.length;
+        const totalPages = Math.ceil(totalDays / limit);
+        const offset = (page - 1) * limit;
 
-
-        const totalPages =
-            Math.ceil(
-                totalDays / limit
-            );
-
-
-        const offset =
-            (page - 1) * limit;
-
-
-        const paginatedDaily =
-            dailyData.slice(
-                offset,
-                offset + limit
-            );
-
+        const paginatedDaily = dailyData.slice(
+            offset,
+            offset + limit
+        );
 
         // =========================================================
         // SERVICE-WISE DATA
@@ -505,219 +381,85 @@ app.get("/api/revenue", requireLogin, async (req, res) => {
 
         const serviceMap = {};
 
-
         rows.forEach(row => {
-
-            const service =
-                row.service;
-
+            const service = row.service;
 
             if (!serviceMap[service]) {
-
                 serviceMap[service] = {
-
                     service,
-
                     revenue: 0,
-
                     activations: 0,
-
                     paidActivations: 0,
-
                     renewals: 0,
-
                     transactions: 0
-
                 };
-
             }
 
-
-            // -----------------------------------------------------
-            // Revenue
-            // -----------------------------------------------------
-
-            serviceMap[service].revenue +=
-                Number(row.total_amount) || 0;
-
-
-            // -----------------------------------------------------
-            // Activations
-            // -----------------------------------------------------
-
-            serviceMap[service].activations +=
-                Number(row.activations) || 0;
-
-
-            // -----------------------------------------------------
-            // Paid Activations
-            // -----------------------------------------------------
-
-            serviceMap[service].paidActivations +=
-                Number(row.paid_activations) || 0;
-
-
-            // -----------------------------------------------------
-            // Renewals
-            // -----------------------------------------------------
-
-            serviceMap[service].renewals +=
-                Number(row.renewals) || 0;
-
-
-            // -----------------------------------------------------
-            // Transactions
-            // -----------------------------------------------------
-
-            serviceMap[service].transactions +=
-                Number(row.total_transactions) || 0;
-
+            serviceMap[service].revenue += Number(row.total_amount) || 0;
+            serviceMap[service].activations += Number(row.activations) || 0;
+            serviceMap[service].paidActivations += Number(row.paid_activations) || 0;
+            serviceMap[service].renewals += Number(row.renewals) || 0;
+            serviceMap[service].transactions += Number(row.total_transactions) || 0;
         });
-
 
         // =========================================================
         // SERVICE PERCENTAGE
         // =========================================================
 
-        const services =
-            Object.values(
-                serviceMap
-            ).map(service => ({
+        const services = Object.values(serviceMap).map(service => ({
+            ...service,
 
-                ...service,
-
-                percentage:
-                    totalRevenue > 0
-
-                        ? (
-                            service.revenue /
-                            totalRevenue
-                        ) * 100
-
-                        : 0
-
-            }));
-
+            percentage: totalRevenue > 0
+                ? (service.revenue / totalRevenue) * 100
+                : 0
+        }));
 
         // =========================================================
         // RESPONSE
         // =========================================================
 
         return res.json({
-
             success: true,
 
-
-            // =====================================================
-            // FILTERS
-            // =====================================================
-
             filters: {
-
                 startDate,
-
                 endDate,
-
                 isDefaultCurrentMonth:
                     !req.query.startDate &&
                     !req.query.endDate
-
             },
-
-
-            // =====================================================
-            // SUMMARY
-            // =====================================================
 
             summary: {
-
-                totalRevenue:
-                    Number(
-                        totalRevenue.toFixed(2)
-                    ),
-
-
-                // All event_id = 1
+                totalRevenue: Number(totalRevenue.toFixed(2)),
                 totalActivations,
-
-
-                // event_id = 1 AND chargeResult = TRUE
                 totalPaidActivations,
-
-
                 totalRenewals,
-
-
                 totalTransactions,
 
-
-                yumzzyRevenue:
-                    Number(
-                        yumzzyRevenue.toFixed(2)
-                    ),
-
-
-                eduwavRevenue:
-                    Number(
-                        eduwavRevenue.toFixed(2)
-                    ),
-
+                yumzzyRevenue: Number(yumzzyRevenue.toFixed(2)),
+                eduwavRevenue: Number(eduwavRevenue.toFixed(2)),
+                fitaiRevenue: Number(fitaiRevenue.toFixed(2)),
                 radiofyyRevenue: Number(radiofyyRevenue.toFixed(2))
-
             },
 
-
-            // =====================================================
-            // SERVICE DATA
-            // =====================================================
-
             services,
-
-
-            // =====================================================
-            // DAY-WISE DATA
-            // =====================================================
-
-            dailyData:
-                paginatedDaily,
-
-
-            // =====================================================
-            // COMPLETE DETAILS
-            // =====================================================
-
-            details:
-                rows,
-
-
-            // =====================================================
-            // PAGINATION
-            // =====================================================
+            dailyData: paginatedDaily,
+            details: rows,
 
             pagination: {
-
-                currentPage:
-                    page,
-
-
-                perPage:
-                    limit,
-
-
+                currentPage: page,
+                perPage: limit,
                 totalDays,
-
-
                 totalPages
-
             }
-
         });
 
-
     } catch (error) {
+        console.error("REVENUE API ERROR:", error);
+
         return res.status(500).json({
             success: false,
-            message:"Unable to fetch revenue data.",
+            message: "Unable to fetch revenue data.",
             error: error.message
         });
     }

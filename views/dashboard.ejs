@@ -32,9 +32,9 @@
    RADIOFYY ADDITIONS
    ========================================================= */
 
-/* Three service cards on desktop */
+/* Four service cards on desktop */
 .service-summary {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 /* Radiofyy card: copy any extra rules from .eduwav-box / .yumzzy-box here */
@@ -45,6 +45,29 @@
 
 .radiofyy-box .service-percent {
     color: #be185d;
+}
+
+/* FITAI card */
+.fitai-box .service-logo {
+    background: linear-gradient(135deg, #14b8a6, #0f766e);
+    color: #fff;
+}
+
+.fitai-box .service-percent {
+    color: #0f766e;
+}
+
+/* FITAI service table icon */
+.service-f {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(20, 184, 166, .12);
+    color: #0f766e;
+    font-weight: 800;
 }
 
 /* Service table icon */
@@ -374,7 +397,7 @@
             </button>
             <div>
                 <h1>Revenue Dashboard</h1>
-                <p>Yumzzy, Eduwav & Radiofyy performance overview</p>
+                <p>Yumzzy, Eduwav, FITAI & Radiofyy performance overview</p>
             </div>
 
             <div class="topbar-right">
@@ -497,6 +520,16 @@
                     <small>Service Revenue</small>
                 </div>
                 <div class="service-percent" id="eduwavPercent">0%</div>
+            </div>
+
+            <div class="service-box fitai-box">
+                <div class="service-logo">F</div>
+                <div class="service-info">
+                    <span>FITAI</span>
+                    <strong id="fitaiRevenue">₹0.00</strong>
+                    <small>Service Revenue</small>
+                </div>
+                <div class="service-percent" id="fitaiPercent">0%</div>
             </div>
 
             <div class="service-box radiofyy-box">
@@ -707,6 +740,9 @@ function renderSummary(summary) {
     document.getElementById("eduwavRevenue").textContent =
         money(summary.eduwavRevenue);
 
+    document.getElementById("fitaiRevenue").textContent =
+        money(summary.fitaiRevenue);
+
     document.getElementById("radiofyyRevenue").textContent =
         money(summary.radiofyyRevenue);
 
@@ -720,6 +756,11 @@ function renderSummary(summary) {
     document.getElementById("eduwavPercent").textContent =
         total > 0
             ? ((summary.eduwavRevenue / total) * 100).toFixed(1) + "%"
+            : "0%";
+
+    document.getElementById("fitaiPercent").textContent =
+        total > 0
+            ? ((summary.fitaiRevenue / total) * 100).toFixed(1) + "%"
             : "0%";
 
     document.getElementById("radiofyyPercent").textContent =
@@ -742,6 +783,7 @@ function renderServices(services) {
         const serviceClass =
             name === "yumzzy"   ? "service-y" :
             name === "eduwav"   ? "service-e" :
+            name === "fitai"    ? "service-f" :
             name === "radiofyy" ? "service-r" :
                                   "service-e";
 
@@ -1063,6 +1105,7 @@ function renderServiceChart(services) {
     const colorMap = {
         Yumzzy: "#f59e0b",
         Eduwav: "#3b82f6",
+        FITAI: "#14b8a6",
         Radiofyy: "#ec4899"
     };
 
