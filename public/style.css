@@ -396,6 +396,20 @@ tbody tr:hover { background: var(--soft); }
 .share-cell small { font-size: 10px; color: var(--muted); }
 .empty { text-align: center; color: var(--muted); padding: 34px; }
 
+.panel-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tabs { display: inline-flex; background: var(--soft); border: 1px solid var(--border); border-radius: 11px; padding: 3px; }
+.tab { border: 0; background: transparent; color: var(--muted); padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+.tab.active { background: var(--card); color: var(--primary); box-shadow: 0 2px 8px rgba(20,27,45,.1); }
+.table-wrap[hidden] { display: none; }
+table.grouped { min-width: 640px; }
+table.grouped th.grp { text-align: center; color: var(--text); border-bottom: 3px solid var(--c, var(--primary)); font-size: 11px; }
+table.grouped th.sub { text-align: center; font-size: 9px; }
+table.grouped td { text-align: center; }
+table.grouped td:first-child, table.grouped th:first-child { text-align: left; }
+.act-cell { color: var(--green); font-weight: 700; }
+.act-cell.tot, .deact-cell.tot { background: var(--soft); font-weight: 800; }
+table.grouped tfoot td { background: var(--soft); font-weight: 800; border-top: 2px solid var(--border); border-bottom: 0; }
+
 .pagination { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
 #paginationInfo { color: var(--muted); font-size: 11px; }
 .pagination-buttons { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }

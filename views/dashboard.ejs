@@ -239,9 +239,15 @@
         <section class="panel table-panel" id="daywise">
             <div class="panel-header">
                 <div><h3>Day-wise report</h3><p>Daily performance with overall active base</p></div>
-                <button class="export-button" id="exportBtn" type="button">↓ Export CSV</button>
+                <div class="panel-actions">
+                    <div class="tabs" id="dayTabs">
+                        <button class="tab active" data-tab="summary" type="button">Summary</button>
+                        <button class="tab" data-tab="service" type="button">By service</button>
+                    </div>
+                    <button class="export-button" id="exportBtn" type="button">↓ Export CSV</button>
+                </div>
             </div>
-            <div class="table-wrap">
+            <div class="table-wrap" id="dayWrap">
                 <table>
                     <thead>
                         <tr>
@@ -250,6 +256,13 @@
                         </tr>
                     </thead>
                     <tbody id="dailyTable"></tbody>
+                </table>
+            </div>
+            <div class="table-wrap" id="svcDayWrap" hidden>
+                <table class="grouped">
+                    <thead id="svcDayHead"></thead>
+                    <tbody id="svcDayBody"></tbody>
+                    <tfoot id="svcDayFoot"></tfoot>
                 </table>
             </div>
             <div class="pagination">
@@ -437,6 +450,8 @@ function renderDaily() {
             <td class="revenue-cell">${money(r.revenue)}</td>
         </tr>`).join("") : `<tr><td colspan="8" class="empty">No data found</td></tr>`;
 
+    renderSvcDay(slice);
+
     $("paginationInfo").textContent = rows.length
         ? `Page ${currentPage} of ${totalPages} • ${rows.length} day(s)` : "No days found";
     $("prevButton").disabled = currentPage <= 1;
@@ -451,6 +466,39 @@ function renderDaily() {
         html += `<button type="button" class="${i === currentPage ? "active-page" : ""}" data-page="${i}">${i}</button>`;
     }
     $("pageNumbers").innerHTML = rows.length ? html : "";
+}
+
+/* ---------- day-wise x service-wise activations / deactivations ---------- */
+function renderSvcDay(slice) {
+    const svcs = lastData.services;
+    const multi = svcs.length > 1;
+
+    const idx = {};
+    lastData.details.forEach(r => (idx[r.report_date + "|" + r.key] = r));
+
+    let h1 = `<tr><th rowspan="2">Date</th>`;
+    let h2 = `<tr>`;
+    svcs.forEach(s => {
+        h1 += `<th colspan="2" class="grp" style="--c:${s.color}">${s.service}</th>`;
+        h2 += `<th class="sub">Act</th><th class="sub">Deact</th>`;
+    });
+    if (multi) { h1 += `<th colspan="2" class="grp total" style="--c:#6366f1">Total</th>`; h2 += `<th class="sub">Act</th><th class="sub">Deact</th>`; }
+    $("svcDayHead").innerHTML = h1 + `</tr>` + h2 + `</tr>`;
+
+    $("svcDayBody").innerHTML = slice.length ? slice.map(r => {
+        let tds = `<td><strong>${fmtDate(r.date)}</strong></td>`;
+        svcs.forEach(s => {
+            const x = idx[r.date + "|" + s.key];
+            tds += `<td class="act-cell">${num(x ? x.activations : 0)}</td><td class="deact-cell">${num(x ? x.deactivations : 0)}</td>`;
+        });
+        if (multi) tds += `<td class="act-cell tot">${num(r.activations)}</td><td class="deact-cell tot">${num(r.deactivations)}</td>`;
+        return `<tr>${tds}</tr>`;
+    }).join("") : `<tr><td colspan="${1 + (svcs.length + (multi ? 1 : 0)) * 2}" class="empty">No data found</td></tr>`;
+
+    let foot = `<tr><td><strong>Period total</strong></td>`;
+    svcs.forEach(s => (foot += `<td class="act-cell">${num(s.activations)}</td><td class="deact-cell">${num(s.deactivations)}</td>`));
+    if (multi) foot += `<td class="act-cell tot">${num(lastData.summary.totalActivations)}</td><td class="deact-cell tot">${num(lastData.summary.totalDeactivations)}</td>`;
+    $("svcDayFoot").innerHTML = foot + `</tr>`;
 }
 
 /* ---------- charts ---------- */
@@ -610,6 +658,15 @@ $("services").addEventListener("click", e => {
     if (!box) return;
     $("service").value = $("service").value === box.dataset.key ? "all" : box.dataset.key;
     loadDashboard();
+});
+
+$("dayTabs").addEventListener("click", e => {
+    const b = e.target.closest(".tab");
+    if (!b) return;
+    document.querySelectorAll("#dayTabs .tab").forEach(t => t.classList.toggle("active", t === b));
+    const svc = b.dataset.tab === "service";
+    $("dayWrap").hidden = svc;
+    $("svcDayWrap").hidden = !svc;
 });
 
 $("prevButton").addEventListener("click", () => { currentPage--; renderDaily(); });
