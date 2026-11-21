@@ -4,357 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hutch Revenue Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        try {
+            const t = localStorage.getItem("theme");
+            if (t) document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {}
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="/style.css">
-
-<style id="dashboard-responsive-additions">
-
-.mobile-menu-btn,
-.sidebar-overlay {
-    display: none;
-}
-
-.paid-activation-card .paid-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(34, 197, 94, .12);
-    color: #16a34a;
-    font-weight: 800;
-}
-
-.paid-tag {
-    color: #16a34a;
-    background: rgba(34, 197, 94, .10);
-}
-
-/* =========================================================
-   RADIOFYY ADDITIONS
-   ========================================================= */
-
-/* Four service cards on desktop */
-.service-summary {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-/* Radiofyy card: copy any extra rules from .eduwav-box / .yumzzy-box here */
-.radiofyy-box .service-logo {
-    background: linear-gradient(135deg, #ec4899, #be185d);
-    color: #fff;
-}
-
-.radiofyy-box .service-percent {
-    color: #be185d;
-}
-
-/* FITAI card */
-.fitai-box .service-logo {
-    background: linear-gradient(135deg, #14b8a6, #0f766e);
-    color: #fff;
-}
-
-.fitai-box .service-percent {
-    color: #0f766e;
-}
-
-/* FITAI service table icon */
-.service-f {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(20, 184, 166, .12);
-    color: #0f766e;
-    font-weight: 800;
-}
-
-/* Service table icon */
-.service-r {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(236, 72, 153, .12);
-    color: #be185d;
-    font-weight: 800;
-}
-
-@media (max-width: 1100px) {
-    .sidebar {
-        width: 220px !important;
-    }
-
-    .main {
-        margin-left: 220px !important;
-        width: calc(100% - 220px) !important;
-        min-width: 0 !important;
-    }
-
-    .stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-
-    .chart-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .filters {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-}
-
-@media (max-width: 768px) {
-    html,
-    body {
-        width: 100%;
-        max-width: 100%;
-        overflow-x: hidden !important;
-    }
-
-    body.menu-open {
-        overflow: hidden !important;
-    }
-
-    .app {
-        display: block !important;
-        width: 100% !important;
-        min-width: 0 !important;
-    }
-
-    .main {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        margin: 0 !important;
-        padding-left: 14px !important;
-        padding-right: 14px !important;
-    }
-
-    /* Existing sidebar becomes a drawer. */
-    .sidebar {
-        position: fixed !important;
-        top: 0 !important;
-        bottom: 0 !important;
-        left: -280px !important;
-
-        width: 260px !important;
-        max-width: 85vw !important;
-        height: 100vh !important;
-
-        margin: 0 !important;
-        z-index: 10000 !important;
-
-        transition: left .3s ease !important;
-        overflow-y: auto !important;
-    }
-
-    .sidebar.mobile-open {
-        left: 0 !important;
-    }
-
-    /* Mobile overlay. */
-    .sidebar-overlay {
-        display: block !important;
-        position: fixed !important;
-        inset: 0 !important;
-        z-index: 9999 !important;
-
-        background: rgba(0,0,0,.55) !important;
-
-        opacity: 0 !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-
-        transition:
-            opacity .25s ease,
-            visibility .25s ease !important;
-    }
-
-    .sidebar-overlay.active {
-        opacity: 1 !important;
-        visibility: visible !important;
-        pointer-events: auto !important;
-    }
-
-    /* Top bar. */
-    .topbar {
-        width: 100% !important;
-        min-width: 0 !important;
-
-        display: flex !important;
-        align-items: center !important;
-        gap: 10px !important;
-    }
-
-    .mobile-menu-btn {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-
-        flex: 0 0 42px !important;
-        width: 42px !important;
-        height: 42px !important;
-
-        padding: 0 !important;
-        border: 0 !important;
-        border-radius: 10px !important;
-
-        background: #111827 !important;
-        color: #fff !important;
-
-        font-size: 22px !important;
-        cursor: pointer !important;
-    }
-
-    .topbar > div:first-of-type {
-        flex: 1 !important;
-        min-width: 0 !important;
-    }
-
-    .topbar h1 {
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-    }
-
-    .topbar p {
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-    }
-
-    /* Filters. */
-    .filter-card {
-        width: 100% !important;
-        min-width: 0 !important;
-    }
-
-    .filters {
-        grid-template-columns: 1fr !important;
-        width: 100% !important;
-    }
-
-    .filter-field,
-    .filter-field input,
-    .filter-field select,
-    .generate-button {
-        width: 100% !important;
-        min-width: 0 !important;
-    }
-
-    /* Cards. */
-    .stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        width: 100% !important;
-    }
-
-    .stat-card {
-        min-width: 0 !important;
-        overflow: hidden !important;
-    }
-
-    .stat-value {
-        max-width: 100% !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-    }
-
-    .service-summary {
-        grid-template-columns: 1fr !important;
-        width: 100% !important;
-    }
-
-    /* Charts. */
-    .chart-grid {
-        grid-template-columns: 1fr !important;
-        width: 100% !important;
-    }
-
-    .panel,
-    .chart-area,
-    .pie-area {
-        min-width: 0 !important;
-        max-width: 100% !important;
-    }
-
-    /* Wide tables scroll instead of breaking the page. */
-    .table-wrap {
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        -webkit-overflow-scrolling: touch !important;
-    }
-
-    .table-wrap table {
-        min-width: 760px !important;
-    }
-
-    .table-wrap th,
-    .table-wrap td {
-        white-space: nowrap !important;
-    }
-
-    .table-panel {
-        max-width: 100% !important;
-        overflow: hidden !important;
-    }
-
-    .pagination {
-        flex-wrap: wrap !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .main {
-        padding-left: 10px !important;
-        padding-right: 10px !important;
-    }
-
-    .mobile-menu-btn {
-        flex-basis: 38px !important;
-        width: 38px !important;
-        height: 38px !important;
-        font-size: 20px !important;
-    }
-
-    .live {
-        display: none !important;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .table-wrap table {
-        min-width: 760px !important;
-    }
-
-    .table-panel > .panel-header {
-        align-items: flex-start !important;
-        gap: 10px !important;
-    }
-
-    .export-button {
-        width: 100% !important;
-    }
-}
-</style>
-
 </head>
-<body>
+<body class="is-loading">
+
+<div class="top-loader"></div>
+<div class="loader-pill"><div class="spinner"></div> Updating report…</div>
 
 <div class="app">
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="brand">
             <div class="brand-logo">H</div>
             <div>
@@ -364,74 +32,79 @@
         </div>
 
         <div class="menu-label">MAIN MENU</div>
-
-        <a class="menu active">
-            <span>▦</span> Dashboard
-        </a>
+        <a class="menu active" href="#overview"><span>▦</span> Overview</a>
+        <a class="menu" href="#projection"><span>◔</span> Projection</a>
+        <a class="menu" href="#services"><span>◉</span> Services</a>
+        <a class="menu" href="#daywise"><span>▤</span> Day-wise</a>
 
         <div class="sidebar-bottom">
             <div class="profile">
-                <div class="avatar">
-                    <%= user.username.substring(0, 2).toUpperCase() %>
-                </div>
+                <div class="avatar"><%= user.username.substring(0, 2).toUpperCase() %></div>
                 <div class="profile-text">
                     <strong><%= user.username %></strong>
                     <small><%= user.role %></small>
                 </div>
             </div>
-
             <form action="/logout" method="POST">
-                <button class="logout-button" type="submit">
-                    <span>↪</span> Logout
-                </button>
+                <button class="logout-button" type="submit"><span>↪</span> Logout</button>
             </form>
         </div>
     </aside>
 
-    <main class="main">
+    <main class="main" id="overview">
 
         <header class="topbar">
-            <button class="mobile-menu-btn" id="mobileMenuBtn" type="button"
-                    aria-label="Open menu" aria-expanded="false">
-                ☰
-            </button>
-            <div>
+            <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+            <div class="topbar-title">
                 <h1>Revenue Dashboard</h1>
-                <p>Yumzzy, Eduwav, FITAI & Radiofyy performance overview</p>
+                <p>Revenue, active base and monthly projection</p>
             </div>
-
             <div class="topbar-right">
-                <div class="live">
-                    <span></span> LIVE
-                </div>
-                <div class="top-avatar">
-                    <%= user.username.substring(0, 2).toUpperCase() %>
-                </div>
+                <div class="live"><span></span> LIVE</div>
+                <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">☾</button>
+                <div class="top-avatar"><%= user.username.substring(0, 2).toUpperCase() %></div>
             </div>
         </header>
 
         <section class="filter-card">
-            <div class="section-heading">
-                <div class="section-icon">⌕</div>
-                <div>
-                    <h3>Report Filters</h3>
-                    <p>Select a date range to generate the report</p>
+            <div class="filter-head">
+                <div class="section-heading">
+                    <div class="section-icon">⌕</div>
+                    <div>
+                        <h3>Report filters</h3>
+                        <p>Pick dates and a service, then generate</p>
+                    </div>
+                </div>
+                <div class="chips" id="chips">
+                    <button class="chip" data-range="today" type="button">Today</button>
+                    <button class="chip" data-range="yesterday" type="button">Yesterday</button>
+                    <button class="chip active" data-range="7" type="button">Last 7 days</button>
+                    <button class="chip" data-range="30" type="button">Last 30 days</button>
+                    <button class="chip" data-range="month" type="button">This month</button>
+                    <button class="chip" data-range="lastmonth" type="button">Last month</button>
                 </div>
             </div>
 
             <div class="filters">
                 <div class="filter-field">
-                    <label>FROM DATE</label>
+                    <label for="startDate">From date</label>
                     <input type="date" id="startDate" value="<%= startDate %>">
                 </div>
-
                 <div class="filter-field">
-                    <label>TO DATE</label>
+                    <label for="endDate">To date</label>
                     <input type="date" id="endDate" value="<%= endDate %>">
                 </div>
-
+                <div class="filter-field">
+                    <label for="service">Service</label>
+                    <select id="service">
+                        <option value="all">All services</option>
+                        <% services.forEach(function (s) { %>
+                            <option value="<%= s.key %>"><%= s.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
                 <div class="filter-field small-filter">
-                    <label>DAYS / PAGE</label>
+                    <label for="limit">Days / page</label>
                     <select id="limit">
                         <option value="5">5</option>
                         <option value="10" selected>10</option>
@@ -439,890 +112,548 @@
                         <option value="50">50</option>
                     </select>
                 </div>
-
-                <button class="generate-button" onclick="loadDashboard(1)">
-                    Generate Report <span>→</span>
+                <button class="generate-button" id="generateBtn" type="button">
+                    <span class="spinner"></span>
+                    Generate report <span class="btn-arrow">→</span>
                 </button>
             </div>
         </section>
 
-        <section class="stats-grid">
-
-            <div class="stat-card revenue-card">
-                <div class="stat-card-top">
-                    <div class="stat-icon revenue-icon">₹</div>
-                    <span class="tag green-tag">REVENUE</span>
-                </div>
-                <div class="stat-label">Total Revenue</div>
-                <div class="stat-value" id="totalRevenue">₹0.00</div>
-                <div class="stat-note">Activations + Renewals</div>
+        <section class="kpi-grid">
+            <div class="kpi-card hero">
+                <div class="kpi-top"><div class="kpi-icon">◎</div><span class="tag">ACTIVE BASE</span></div>
+                <div class="kpi-label">Overall active base</div>
+                <div class="kpi-value" id="activeBase">0</div>
+                <div class="kpi-note" id="activeBaseNote">Activations − deactivations</div>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-card-top">
-                    <div class="stat-icon blue-icon">⚡</div>
-                    <span class="tag blue-tag">NEW</span>
-                </div>
-                <div class="stat-label">Total Activations</div>
-                <div class="stat-value" id="totalActivations">0</div>
-                <div class="stat-note">New subscriptions</div>
+            <div class="kpi-card">
+                <div class="kpi-top"><div class="kpi-icon i-green">₹</div><span class="tag i-green">REVENUE</span></div>
+                <div class="kpi-label">Total revenue</div>
+                <div class="kpi-value" id="totalRevenue">₹0.00</div>
+                <div class="kpi-note">Activations + renewals</div>
             </div>
-
-            <div class="stat-card paid-activation-card">
-                <div class="stat-card-top">
-                    <div class="stat-icon paid-icon">✓</div>
-                    <span class="tag paid-tag">PAID</span>
-                </div>
-                <div class="stat-label">Paid Activations</div>
-                <div class="stat-value" id="totalPaidActivations">0</div>
-                <!-- <div class="stat-note">event_id = 1 & chargeResult = true</div> -->
+            <div class="kpi-card">
+                <div class="kpi-top"><div class="kpi-icon i-blue">⚡</div><span class="tag i-blue">NEW</span></div>
+                <div class="kpi-label">Activations</div>
+                <div class="kpi-value" id="totalActivations">0</div>
+                <div class="kpi-note">New subscriptions</div>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-card-top">
-                    <div class="stat-icon purple-icon">↻</div>
-                    <span class="tag purple-tag">RENEWAL</span>
-                </div>
-                <div class="stat-label">Total Renewals</div>
-                <div class="stat-value" id="totalRenewals">0</div>
-                <div class="stat-note">Renewed subscriptions</div>
+            <div class="kpi-card">
+                <div class="kpi-top"><div class="kpi-icon i-green">✓</div><span class="tag i-green">PAID</span></div>
+                <div class="kpi-label">Paid activations</div>
+                <div class="kpi-value" id="totalPaidActivations">0</div>
+                <div class="kpi-note">Charged successfully</div>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-card-top">
-                    <div class="stat-icon orange-icon">▤</div>
-                    <span class="tag orange-tag">TOTAL</span>
-                </div>
-                <div class="stat-label">Transactions</div>
-                <div class="stat-value" id="totalTransactions">0</div>
-                <div class="stat-note">Successful events</div>
+            <div class="kpi-card">
+                <div class="kpi-top"><div class="kpi-icon i-red">✕</div><span class="tag i-red">CHURN</span></div>
+                <div class="kpi-label">Deactivations</div>
+                <div class="kpi-value" id="totalDeactivations">0</div>
+                <div class="kpi-note">Unsubscribed users</div>
             </div>
-
+            <div class="kpi-card">
+                <div class="kpi-top"><div class="kpi-icon i-purple">↻</div><span class="tag i-purple">RENEWAL</span></div>
+                <div class="kpi-label">Renewals</div>
+                <div class="kpi-value" id="totalRenewals">0</div>
+                <div class="kpi-note">Renewed subscriptions</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><div class="kpi-icon i-orange">▤</div><span class="tag i-orange">TOTAL</span></div>
+                <div class="kpi-label">Transactions</div>
+                <div class="kpi-value" id="totalTransactions">0</div>
+                <div class="kpi-note">Activations + renewals</div>
+            </div>
         </section>
 
-        <section class="service-summary">
-
-            <div class="service-box yumzzy-box">
-                <div class="service-logo">Y</div>
-                <div class="service-info">
-                    <span>YUMZZY</span>
-                    <strong id="yumzzyRevenue">₹0.00</strong>
-                    <small>Service Revenue</small>
+        <section class="proj-card" id="projection">
+            <div class="proj-hero">
+                <p class="eyebrow" id="projMonth">Monthly projection</p>
+                <div class="proj-big" id="projRevenue">₹0.00</div>
+                <div class="proj-bar"><span id="projBar"></span></div>
+                <div class="proj-meta">
+                    <span id="projMtd">₹0.00 earned so far</span>
+                    <span id="projDays">Day 0 of 0</span>
                 </div>
-                <div class="service-percent" id="yumzzyPercent">0%</div>
+                <div class="proj-meta"><span id="projAvg">Avg ₹0.00 / day (last 7 days)</span></div>
             </div>
-
-            <div class="service-box eduwav-box">
-                <div class="service-logo">E</div>
-                <div class="service-info">
-                    <span>EDUWAV</span>
-                    <strong id="eduwavRevenue">₹0.00</strong>
-                    <small>Service Revenue</small>
+            <div class="proj-side">
+                <div class="proj-stats">
+                    <div class="proj-stat"><small>Projected activations</small><div class="proj-num" id="projAct">0</div><em id="projActNote"></em></div>
+                    <div class="proj-stat"><small>Projected deactivations</small><div class="proj-num" id="projDeact">0</div><em id="projDeactNote"></em></div>
+                    <div class="proj-stat"><small>Active base at month end</small><div class="proj-num" id="projBase">0</div><em id="projBaseNote"></em></div>
                 </div>
-                <div class="service-percent" id="eduwavPercent">0%</div>
+                <div class="proj-svc" id="projServices"></div>
             </div>
-
-            <div class="service-box fitai-box">
-                <div class="service-logo">F</div>
-                <div class="service-info">
-                    <span>FITAI</span>
-                    <strong id="fitaiRevenue">₹0.00</strong>
-                    <small>Service Revenue</small>
-                </div>
-                <div class="service-percent" id="fitaiPercent">0%</div>
-            </div>
-
-            <div class="service-box radiofyy-box">
-                <div class="service-logo">R</div>
-                <div class="service-info">
-                    <span>RADIOFYY</span>
-                    <strong id="radiofyyRevenue">₹0.00</strong>
-                    <small>Service Revenue</small>
-                </div>
-                <div class="service-percent" id="radiofyyPercent">0%</div>
-            </div>
-
         </section>
+
+        <section class="service-summary" id="services"></section>
 
         <section class="chart-grid">
-
             <div class="panel">
                 <div class="panel-header">
-                    <div>
-                        <h3>Daily Revenue</h3>
-                        <p>Revenue trend by date</p>
-                    </div>
+                    <div><h3>Daily revenue</h3><p>Revenue by date, split by service</p></div>
                     <span class="panel-pill">₹ REVENUE</span>
                 </div>
-                <div class="chart-area">
-                    <canvas id="revenueChart"></canvas>
-                </div>
+                <div class="chart-area"><canvas id="revenueChart"></canvas></div>
             </div>
-
             <div class="panel">
                 <div class="panel-header">
-                    <div>
-                        <h3>Service Revenue</h3>
-                        <p>Revenue distribution</p>
-                    </div>
+                    <div><h3>Service revenue</h3><p>Revenue distribution</p></div>
                 </div>
-                <div class="pie-area">
-                    <canvas id="serviceChart"></canvas>
-                </div>
+                <div class="pie-area"><canvas id="serviceChart"></canvas></div>
             </div>
+        </section>
 
+        <section class="chart-grid second">
+            <div class="panel">
+                <div class="panel-header">
+                    <div><h3>Active base trend</h3><p>Daily activations, deactivations and running active base</p></div>
+                    <span class="panel-pill">BASE</span>
+                </div>
+                <div class="chart-area"><canvas id="baseChart"></canvas></div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div><h3>Net adds</h3><p>Activations − deactivations per day</p></div>
+                </div>
+                <div class="pie-area"><canvas id="netChart"></canvas></div>
+            </div>
         </section>
 
         <section class="panel table-panel">
-
             <div class="panel-header">
-                <div>
-                    <h3>Service Performance</h3>
-                    <p>Service-wise revenue summary</p>
-                </div>
+                <div><h3>Service performance</h3><p>Service-wise summary with active base</p></div>
             </div>
-
             <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
-                            <th>Service</th>
-                            <th>Activations</th>
-                            <th>Paid Activations</th>
-                            <th>Renewals</th>
-                            <th>Transactions</th>
-                            <th>Revenue</th>
-                            <th>Share</th>
+                            <th>Service</th><th>Activations</th><th>Paid</th><th>Renewals</th>
+                            <th>Deactivations</th><th>Net adds</th><th>Active base</th><th>Revenue</th><th>Share</th>
                         </tr>
                     </thead>
                     <tbody id="serviceTable"></tbody>
                 </table>
             </div>
-
         </section>
 
-        <section class="panel table-panel">
+        <section class="panel table-panel" id="daywise">
             <div class="panel-header">
-                <div>
-                    <h3>Day-wise Revenue</h3>
-                    <p>Daily performance summary</p>
-                </div>
-
-                <button class="export-button" onclick="exportCSV()">
-                    ↓ Export CSV
-                </button>
+                <div><h3>Day-wise report</h3><p>Daily performance with overall active base</p></div>
+                <button class="export-button" id="exportBtn" type="button">↓ Export CSV</button>
             </div>
-
             <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Activations</th>
-                            <th>PAID ACTIVATIONS</th>
-                            <th>Renewals</th>
-                            <th>Transactions</th>
-                            <th>Revenue</th>
+                            <th>Date</th><th>Activations</th><th>Paid</th><th>Renewals</th>
+                            <th>Deactivations</th><th>Net adds</th><th>Active base</th><th>Revenue</th>
                         </tr>
                     </thead>
                     <tbody id="dailyTable"></tbody>
                 </table>
             </div>
-
             <div class="pagination">
                 <div id="paginationInfo"></div>
-
                 <div class="pagination-buttons">
-                    <button id="prevButton" onclick="changePage(-1)">‹</button>
+                    <button id="prevButton" type="button">‹</button>
                     <div id="pageNumbers"></div>
-                    <button id="nextButton" onclick="changePage(1)">›</button>
+                    <button id="nextButton" type="button">›</button>
                 </div>
             </div>
-
         </section>
 
         <footer>
-            Hutch Revenue Dashboard • Existing callback data
+            <span>Hutch Revenue Dashboard</span>
+            <span class="perf" id="perf">⚡ —</span>
         </footer>
-
     </main>
 </div>
 
 <script>
-let currentPage = 1;
+const SERVICES = <%- JSON.stringify(services) %>;
+const $ = id => document.getElementById(id);
+
 let lastData = null;
-let revenueChart = null;
-let serviceChart = null;
+let currentPage = 1;
+let controller = null;
+const charts = {};
 
-function money(value) {
-    return "₹" + Number(value || 0).toLocaleString("en-IN", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+/* ---------- formatters ---------- */
+const money = v => "₹" + Number(v || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const num = v => Number(v || 0).toLocaleString("en-IN");
+const signed = v => (v > 0 ? "+" : "") + num(v);
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmtDate = (s, opts) => new Date(s + "T00:00:00").toLocaleDateString("en-IN", opts || { day: "2-digit", month: "short", year: "numeric" });
+const pad = n => String(n).padStart(2, "0");
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const badge = v => `<span class="badge ${v > 0 ? "pos" : v < 0 ? "neg" : "zero"}">${v > 0 ? "▲" : v < 0 ? "▼" : ""} ${signed(v)}</span>`;
+
+/* ---------- loader ---------- */
+function setLoading(on) {
+    document.body.classList.toggle("is-loading", on);
+    $("generateBtn").disabled = on;
+    if (on) { // restart top-bar animation
+        document.body.classList.remove("is-loading");
+        void document.body.offsetWidth;
+        document.body.classList.add("is-loading");
+    }
+}
+
+/* ---------- data ---------- */
+async function loadDashboard() {
+    if (controller) controller.abort();
+    controller = new AbortController();
+    const mine = controller;
+
+    const qs = new URLSearchParams({
+        startDate: $("startDate").value,
+        endDate: $("endDate").value,
+        service: $("service").value
     });
-}
 
-function number(value) {
-    return Number(value || 0).toLocaleString("en-IN");
-}
-
-async function loadDashboard(page = 1) {
-
-    currentPage = page;
-
-    const startDate =
-        document.getElementById("startDate").value;
-
-    const endDate =
-        document.getElementById("endDate").value;
-
-    const limit =
-        document.getElementById("limit").value;
-
-    const url =
-        `/api/revenue?startDate=${encodeURIComponent(startDate)}` +
-        `&endDate=${encodeURIComponent(endDate)}` +
-        `&page=${page}&limit=${limit}`;
+    setLoading(true);
+    const t0 = performance.now();
 
     try {
-
-        const response = await fetch(url);
-
-        if (response.status === 401) {
-            window.location.href = "/login";
-            return;
-        }
-
-        const data = await response.json();
-
-        if (!data.success) {
-            alert(data.message || "Unable to load report");
-            return;
-        }
+        const res = await fetch("/api/revenue?" + qs, { signal: mine.signal });
+        if (res.status === 401) { location.href = "/login"; return; }
+        const data = await res.json();
+        if (!data.success) { alert(data.message || "Unable to load report"); return; }
 
         lastData = data;
+        currentPage = 1;
+        render(data);
 
-        renderSummary(data.summary);
-        renderServices(data.services);
-        renderDaily(data.dailyData);
-        renderPagination(data.pagination);
-        renderRevenueChart(data.dailyData);
-        renderServiceChart(data.services);
-
-    } catch (error) {
-
-        console.error(error);
-
+        const total = Math.round(performance.now() - t0);
+        $("perf").textContent = `⚡ ${data.perf.ms} ms server${data.perf.cached ? " (cached)" : ""} • ${total} ms total`;
+    } catch (err) {
+        if (err.name === "AbortError") return;
+        console.error(err);
         alert("Unable to connect to server.");
-
+    } finally {
+        if (controller === mine) setLoading(false);
     }
 }
 
-function renderSummary(summary) {
-
-    document.getElementById("totalRevenue").textContent =
-        money(summary.totalRevenue);
-
-    document.getElementById("totalActivations").textContent =
-        number(summary.totalActivations);
-
-    document.getElementById("totalPaidActivations").textContent =
-        number(summary.totalPaidActivations ?? 0);
-
-    document.getElementById("totalRenewals").textContent =
-        number(summary.totalRenewals);
-
-    document.getElementById("totalTransactions").textContent =
-        number(summary.totalTransactions);
-
-    document.getElementById("yumzzyRevenue").textContent =
-        money(summary.yumzzyRevenue);
-
-    document.getElementById("eduwavRevenue").textContent =
-        money(summary.eduwavRevenue);
-
-    document.getElementById("fitaiRevenue").textContent =
-        money(summary.fitaiRevenue);
-
-    document.getElementById("radiofyyRevenue").textContent =
-        money(summary.radiofyyRevenue);
-
-    const total = Number(summary.totalRevenue) || 0;
-
-    document.getElementById("yumzzyPercent").textContent =
-        total > 0
-            ? ((summary.yumzzyRevenue / total) * 100).toFixed(1) + "%"
-            : "0%";
-
-    document.getElementById("eduwavPercent").textContent =
-        total > 0
-            ? ((summary.eduwavRevenue / total) * 100).toFixed(1) + "%"
-            : "0%";
-
-    document.getElementById("fitaiPercent").textContent =
-        total > 0
-            ? ((summary.fitaiRevenue / total) * 100).toFixed(1) + "%"
-            : "0%";
-
-    document.getElementById("radiofyyPercent").textContent =
-        total > 0
-            ? ((summary.radiofyyRevenue / total) * 100).toFixed(1) + "%"
-            : "0%";
+function render(d) {
+    renderSummary(d.summary);
+    renderProjection(d.projection);
+    renderServiceBoxes(d.services);
+    renderServiceTable(d.services);
+    renderDaily();
+    renderCharts(d);
 }
 
-function renderServices(services) {
-    const tbody = document.getElementById("serviceTable");
-    tbody.innerHTML = "";
-    if (!services.length) {
-        tbody.innerHTML =
-            `<tr><td colspan="7" class="empty">No data found</td></tr>`;
-        return;
-    }
-
-    services.forEach(service => {
-        const name = service.service.toLowerCase();
-        const serviceClass =
-            name === "yumzzy"   ? "service-y" :
-            name === "eduwav"   ? "service-e" :
-            name === "fitai"    ? "service-f" :
-            name === "radiofyy" ? "service-r" :
-                                  "service-e";
-
-        tbody.innerHTML += `
-            <tr>
-                <td>
-                    <div class="service-name">
-                        <span class="${serviceClass}">
-                            ${service.service.charAt(0)}
-                        </span>
-                        <strong>${service.service}</strong>
-                    </div>
-                </td>
-                <td>${number(service.activations)}</td>
-                <td>${number(service.paidActivations ?? service.paid_activations ?? 0)}</td>
-                <td>${number(service.renewals)}</td>
-                <td>${number(service.transactions)}</td>
-                <td class="revenue-cell">
-                    ${money(service.revenue)}
-                </td>
-                <td>
-                    <div class="share-cell">
-                        <div class="progress">
-                            <span style="width:${service.percentage}%"></span>
-                        </div>
-                        <small>${service.percentage.toFixed(1)}%</small>
-                    </div>
-                </td>
-            </tr>
-        `;
-    });
+/* ---------- KPI ---------- */
+function renderSummary(s) {
+    $("activeBase").textContent = num(s.activeBase);
+    $("activeBaseNote").innerHTML =
+        `<span class="${s.netAdds >= 0 ? "up" : "down"}">${s.netAdds >= 0 ? "▲" : "▼"} ${signed(s.netAdds)}</span> in period • opening ${num(s.openingBase)}`;
+    $("totalRevenue").textContent = money(s.totalRevenue);
+    $("totalActivations").textContent = num(s.totalActivations);
+    $("totalPaidActivations").textContent = num(s.totalPaidActivations);
+    $("totalDeactivations").textContent = num(s.totalDeactivations);
+    $("totalRenewals").textContent = num(s.totalRenewals);
+    $("totalTransactions").textContent = num(s.totalTransactions);
 }
 
-function renderDaily(rows) {
+/* ---------- projection ---------- */
+function renderProjection(p) {
+    $("projMonth").textContent = `Projected revenue • ${p.month}`;
+    $("projRevenue").textContent = money(p.revenue.projected);
+    $("projBar").style.width = (p.revenue.projected > 0 ? Math.min(100, (p.revenue.mtd / p.revenue.projected) * 100) : 0).toFixed(1) + "%";
+    $("projMtd").textContent = `${money(p.revenue.mtd)} earned so far`;
+    $("projDays").textContent = `Day ${p.dayOfMonth} of ${p.daysInMonth} • ${p.remaining} left`;
+    $("projAvg").textContent = `Avg ${money(p.revenue.avgDaily)} / day (last 7 days)`;
 
-    const tbody =
-        document.getElementById("dailyTable");
+    $("projAct").textContent = num(p.activations.projected);
+    $("projActNote").textContent = `${num(p.activations.mtd)} so far`;
+    $("projDeact").textContent = num(p.deactivations.projected);
+    $("projDeactNote").textContent = `${num(p.deactivations.mtd)} so far`;
+    $("projBase").textContent = num(p.activeBase.projected);
+    $("projBaseNote").textContent = `${num(p.activeBase.current)} today`;
 
-    tbody.innerHTML = "";
-
-    if (!rows.length) {
-
-        tbody.innerHTML =
-            `<tr><td colspan="6" class="empty">No data found</td></tr>`;
-
-        return;
-    }
-
-    rows.forEach(row => {
-
-        const date =
-            new Date(row.report_date + "T00:00:00");
-
-        const formattedDate =
-            date.toLocaleDateString("en-IN", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric"
-            });
-
-        tbody.innerHTML += `
-            <tr>
-                <td>
-                    <strong>${formattedDate}</strong>
-                </td>
-                <td>${number(row.activations)}</td>
-                <td>${number(row.paidActivations ?? row.paid_activations ?? 0)}</td>
-                <td>${number(row.renewals)}</td>
-                <td>${number(row.transactions)}</td>
-                <td class="revenue-cell">
-                    ${money(row.revenue)}
-                </td>
-            </tr>
-        `;
-    });
+    const max = Math.max(...p.services.map(s => s.projected), 1);
+    $("projServices").innerHTML = p.services.map(s => `
+        <div class="proj-svc-row">
+            <b>${s.name}</b>
+            <div class="track">
+                <i style="background:${s.color};width:${(s.projected / max) * 100}%"></i>
+                <u style="background:${s.color};width:${(s.mtd / max) * 100}%"></u>
+            </div>
+            <span>${money(s.projected)}</span>
+        </div>`).join("");
 }
 
-function renderPagination(pagination) {
+/* ---------- services ---------- */
+function renderServiceBoxes(list) {
+    const sel = $("service").value;
+    $("services").innerHTML = list.map(s => `
+        <div class="service-box ${sel === s.key ? "selected" : ""}" data-key="${s.key}" title="Click to filter">
+            <div class="service-logo" style="background:linear-gradient(135deg, ${s.color}, ${s.color}aa)">${s.letter}</div>
+            <div class="service-info">
+                <span>${s.service.toUpperCase()}</span>
+                <strong class="svc-value">${money(s.revenue)}</strong>
+                <small>Active base ${num(s.activeBase)} • ${signed(s.netAdds)} net</small>
+            </div>
+            <div class="service-percent">${s.percentage.toFixed(1)}%</div>
+        </div>`).join("");
+}
 
-    const info =
-        document.getElementById("paginationInfo");
+function renderServiceTable(list) {
+    $("serviceTable").innerHTML = list.length ? list.map(s => `
+        <tr>
+            <td><div class="service-name"><span class="dot" style="background:${s.color}">${s.letter}</span><strong>${s.service}</strong></div></td>
+            <td>${num(s.activations)}</td>
+            <td>${num(s.paidActivations)}</td>
+            <td>${num(s.renewals)}</td>
+            <td class="deact-cell">${num(s.deactivations)}</td>
+            <td>${badge(s.netAdds)}</td>
+            <td class="base-cell">${num(s.activeBase)}</td>
+            <td class="revenue-cell">${money(s.revenue)}</td>
+            <td><div class="share-cell"><div class="progress"><span style="width:${s.percentage}%"></span></div><small>${s.percentage.toFixed(1)}%</small></div></td>
+        </tr>`).join("") : `<tr><td colspan="9" class="empty">No data found</td></tr>`;
+}
 
-    const pageNumbers =
-        document.getElementById("pageNumbers");
+/* ---------- day-wise (client-side pagination = instant) ---------- */
+function renderDaily() {
+    if (!lastData) return;
+    const rows = [...lastData.dailyData].reverse();
+    const limit = Number($("limit").value) || 10;
+    const totalPages = Math.max(1, Math.ceil(rows.length / limit));
+    if (currentPage > totalPages) currentPage = totalPages;
 
-    const prev =
-        document.getElementById("prevButton");
+    const slice = rows.slice((currentPage - 1) * limit, currentPage * limit);
 
-    const next =
-        document.getElementById("nextButton");
+    $("dailyTable").innerHTML = slice.length ? slice.map(r => `
+        <tr>
+            <td><strong>${fmtDate(r.date)}</strong></td>
+            <td>${num(r.activations)}</td>
+            <td>${num(r.paidActivations)}</td>
+            <td>${num(r.renewals)}</td>
+            <td class="deact-cell">${num(r.deactivations)}</td>
+            <td>${badge(r.netAdds)}</td>
+            <td class="base-cell">${num(r.activeBase)}</td>
+            <td class="revenue-cell">${money(r.revenue)}</td>
+        </tr>`).join("") : `<tr><td colspan="8" class="empty">No data found</td></tr>`;
 
-    if (!pagination.totalDays) {
+    $("paginationInfo").textContent = rows.length
+        ? `Page ${currentPage} of ${totalPages} • ${rows.length} day(s)` : "No days found";
+    $("prevButton").disabled = currentPage <= 1;
+    $("nextButton").disabled = currentPage >= totalPages;
 
-        info.textContent = "No days found";
-        pageNumbers.innerHTML = "";
-        prev.disabled = true;
-        next.disabled = true;
-
-        return;
-    }
-
-    info.textContent =
-        `Page ${pagination.currentPage} of ${Math.max(pagination.totalPages, 1)}
-         • ${pagination.totalDays} day(s)`;
-
-    prev.disabled =
-        pagination.currentPage <= 1;
-
-    next.disabled =
-        pagination.currentPage >= pagination.totalPages;
-
-    pageNumbers.innerHTML = "";
-
-    const total =
-        pagination.totalPages;
-
-    const current =
-        pagination.currentPage;
-
-    for (let i = 1; i <= total; i++) {
-
-        if (
-            total > 7 &&
-            i !== 1 &&
-            i !== total &&
-            Math.abs(i - current) > 2
-        ) {
-
-            if (
-                i === current - 3 ||
-                i === current + 3
-            ) {
-                pageNumbers.innerHTML +=
-                    `<span class="dots">…</span>`;
-            }
-
+    let html = "";
+    for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i !== 1 && i !== totalPages && Math.abs(i - currentPage) > 2) {
+            if (i === currentPage - 3 || i === currentPage + 3) html += `<span class="dots">…</span>`;
             continue;
         }
-
-        pageNumbers.innerHTML += `
-            <button
-                class="${i === current ? "active-page" : ""}"
-                onclick="loadDashboard(${i})">
-                ${i}
-            </button>
-        `;
+        html += `<button type="button" class="${i === currentPage ? "active-page" : ""}" data-page="${i}">${i}</button>`;
     }
+    $("pageNumbers").innerHTML = rows.length ? html : "";
 }
 
-function changePage(direction) {
-
-    if (!lastData) return;
-
-    const pagination =
-        lastData.pagination;
-
-    const nextPage =
-        pagination.currentPage + direction;
-
-    if (
-        nextPage >= 1 &&
-        nextPage <= pagination.totalPages
-    ) {
-        loadDashboard(nextPage);
-    }
+/* ---------- charts ---------- */
+function makeChart(id, config) {
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart($(id).getContext("2d"), config);
 }
 
-function renderRevenueChart(rows) {
+function renderCharts(d) {
+    const text = cssVar("--muted");
+    const grid = cssVar("--border");
+    Chart.defaults.color = text;
+    Chart.defaults.font.family = "Inter, -apple-system, 'Segoe UI', Arial, sans-serif";
 
-    const ctx =
-        document
-            .getElementById("revenueChart")
-            .getContext("2d");
+    const dates = d.dailyData.map(r => r.date);
+    const labels = dates.map(x => fmtDate(x, { day: "2-digit", month: "short" }));
+    const scales = (extra) => ({
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 12 } },
+        y: { beginAtZero: true, grid: { color: grid }, ticks: { callback: v => num(v) } },
+        ...extra
+    });
+    const base = { responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: "index" } };
 
-    const ordered =
-        [...rows].reverse();
-
-    const labels =
-        ordered.map(row => {
-
-            const d =
-                new Date(
-                    row.report_date + "T00:00:00"
-                );
-
-            return d.toLocaleDateString(
-                "en-IN",
-                {
-                    day: "2-digit",
-                    month: "short"
-                }
-            );
-
-        });
-
-    const values =
-        ordered.map(
-            row => Number(row.revenue) || 0
-        );
-
-    if (revenueChart) {
-        revenueChart.destroy();
-    }
-
-    revenueChart =
-        new Chart(ctx, {
-
-            type: "line",
-
-            data: {
-
-                labels,
-
-                datasets: [{
-
-                    label: "Revenue",
-
-                    data: values,
-
-                    borderWidth: 3,
-
-                    tension: 0.4,
-
-                    fill: true,
-
-                    pointRadius: 4,
-
-                    pointHoverRadius: 7
-
-                }]
-
+    // revenue by service (stacked)
+    const idx = {};
+    d.details.forEach(r => (idx[r.report_date + "|" + r.key] = r.total_amount));
+    makeChart("revenueChart", {
+        type: "bar",
+        data: {
+            labels,
+            datasets: d.services.map(s => ({
+                label: s.service,
+                data: dates.map(x => idx[x + "|" + s.key] || 0),
+                backgroundColor: s.color,
+                borderRadius: 4,
+                maxBarThickness: 34
+            }))
+        },
+        options: {
+            ...base,
+            plugins: {
+                legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8 } },
+                tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${money(c.raw)}` } }
             },
-
-            options: {
-
-                responsive: true,
-
-                maintainAspectRatio: false,
-
-                interaction: {
-                    intersect: false,
-                    mode: "index"
-                },
-
-                plugins: {
-
-                    legend: {
-                        display: false
-                    },
-
-                    tooltip: {
-
-                        callbacks: {
-
-                            label: context =>
-                                " Revenue: " +
-                                money(context.raw)
-
-                        }
-
-                    }
-
-                },
-
-                scales: {
-
-                    y: {
-
-                        beginAtZero: true,
-
-                        ticks: {
-
-                            callback: value =>
-                                "₹" +
-                                Number(value)
-                                    .toLocaleString("en-IN")
-
-                        },
-
-                        grid: {
-                            drawBorder: false
-                        }
-
-                    },
-
-                    x: {
-
-                        grid: {
-                            display: false
-                        }
-
-                    }
-
-                }
-
-            }
-
-        });
-}
-
-function renderServiceChart(services) {
-
-    const ctx =
-        document
-            .getElementById("serviceChart")
-            .getContext("2d");
-
-    const labels =
-        services.map(
-            service => service.service
-        );
-
-    const values =
-        services.map(
-            service => Number(service.revenue) || 0
-        );
-
-    // Stable colors per service
-    const colorMap = {
-        Yumzzy: "#f59e0b",
-        Eduwav: "#3b82f6",
-        FITAI: "#14b8a6",
-        Radiofyy: "#ec4899"
-    };
-
-    if (serviceChart) {
-        serviceChart.destroy();
-    }
-
-    serviceChart =
-        new Chart(ctx, {
-
-            type: "doughnut",
-
-            data: {
-
-                labels,
-
-                datasets: [{
-
-                    data: values,
-
-                    backgroundColor:
-                        labels.map(l => colorMap[l] || "#94a3b8"),
-
-                    borderWidth: 4
-
-                }]
-
-            },
-
-            options: {
-
-                responsive: true,
-
-                maintainAspectRatio: false,
-
-                cutout: "68%",
-
-                plugins: {
-
-                    legend: {
-
-                        position: "bottom",
-
-                        labels: {
-                            padding: 20
-                        }
-
-                    },
-
-                    tooltip: {
-
-                        callbacks: {
-
-                            label: context =>
-                                " " +
-                                context.label +
-                                ": " +
-                                money(context.raw)
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-        });
-}
-
-function exportCSV() {
-
-    if (!lastData || !lastData.details.length) {
-
-        alert("No data available to export.");
-
-        return;
-    }
-
-    const rows =
-        lastData.details;
-
-    let csv =
-        "Date,Service,Bundle ID,Activations,Paid Activations,Renewals,Transactions,Revenue\n";
-
-    rows.forEach(row => {
-
-        csv += [
-            row.report_date,
-            row.service,
-            row.bundle_id,
-            row.activations,
-            row.paid_activations ?? row.paidActivations ?? 0,
-            row.renewals,
-            row.total_transactions,
-            Number(row.total_amount || 0).toFixed(2)
-        ].join(",") + "\n";
-
+            scales: { x: { stacked: true, grid: { display: false }, ticks: { maxTicksLimit: 12 } },
+                      y: { stacked: true, beginAtZero: true, grid: { color: grid }, ticks: { callback: v => "₹" + num(v) } } }
+        }
     });
 
-    const blob =
-        new Blob(
-            [csv],
-            { type: "text/csv;charset=utf-8;" }
-        );
+    // doughnut
+    makeChart("serviceChart", {
+        type: "doughnut",
+        data: {
+            labels: d.services.map(s => s.service),
+            datasets: [{ data: d.services.map(s => s.revenue), backgroundColor: d.services.map(s => s.color), borderWidth: 3, borderColor: cssVar("--card") }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: "68%",
+            plugins: {
+                legend: { position: "bottom", labels: { padding: 16, usePointStyle: true, boxWidth: 8 } },
+                tooltip: { callbacks: { label: c => ` ${c.label}: ${money(c.raw)}` } }
+            }
+        }
+    });
 
-    const url =
-        URL.createObjectURL(blob);
+    // active base trend
+    makeChart("baseChart", {
+        data: {
+            labels,
+            datasets: [
+                { type: "line", label: "Active base", data: d.dailyData.map(r => r.activeBase), yAxisID: "y1", borderColor: "#6366f1", backgroundColor: "rgba(99,102,241,.12)", fill: true, tension: .35, borderWidth: 3, pointRadius: dates.length > 31 ? 0 : 3, order: 0 },
+                { type: "bar", label: "Activations", data: d.dailyData.map(r => r.activations), backgroundColor: "#22c55e", borderRadius: 4, maxBarThickness: 18, order: 1 },
+                { type: "bar", label: "Deactivations", data: d.dailyData.map(r => r.deactivations), backgroundColor: "#f43f5e", borderRadius: 4, maxBarThickness: 18, order: 1 }
+            ]
+        },
+        options: {
+            ...base,
+            plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${num(c.raw)}` } } },
+            scales: {
+                x: { grid: { display: false }, ticks: { maxTicksLimit: 12 } },
+                y: { beginAtZero: true, grid: { color: grid }, ticks: { callback: v => num(v) }, title: { display: true, text: "Daily" } },
+                y1: { position: "right", grid: { drawOnChartArea: false }, ticks: { callback: v => num(v) }, title: { display: true, text: "Active base" } }
+            }
+        }
+    });
 
-    const link =
-        document.createElement("a");
+    // net adds
+    makeChart("netChart", {
+        type: "bar",
+        data: { labels, datasets: [{ label: "Net adds", data: d.dailyData.map(r => r.netAdds), backgroundColor: d.dailyData.map(r => (r.netAdds >= 0 ? "#22c55e" : "#f43f5e")), borderRadius: 4 }] },
+        options: { ...base, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` Net: ${signed(c.raw)}` } } }, scales: scales() }
+    });
+}
 
-    link.href = url;
+/* ---------- CSV ---------- */
+function exportCSV() {
+    if (!lastData || !lastData.details.length) { alert("No data available to export."); return; }
 
-    link.download =
-        `hutch-revenue-${document.getElementById("startDate").value}-${document.getElementById("endDate").value}.csv`;
+    const byDate = {};
+    lastData.dailyData.forEach(r => (byDate[r.date] = r));
 
-    link.click();
+    let csv = "Date,Service,Bundle ID,Activations,Paid Activations,Renewals,Deactivations,Net Adds,Transactions,Revenue,Overall Active Base (day end)\n";
+    lastData.details.forEach(r => {
+        csv += [
+            r.report_date, r.service, r.bundle_id, r.activations, r.paid_activations, r.renewals,
+            r.deactivations, r.activations - r.deactivations, r.total_transactions,
+            Number(r.total_amount || 0).toFixed(2), byDate[r.report_date] ? byDate[r.report_date].activeBase : ""
+        ].join(",") + "\n";
+    });
 
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `hutch-revenue-${$("service").value}-${$("startDate").value}-${$("endDate").value}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
 }
 
-document
-    .getElementById("limit")
-    .addEventListener("change", () => {
-        loadDashboard(1);
-    });
+/* ---------- quick ranges ---------- */
+function setRange(type) {
+    const now = new Date();
+    const d = (y, m, day) => new Date(y, m, day);
+    let from, to = now;
 
+    if (type === "today") from = now;
+    else if (type === "yesterday") { from = to = d(now.getFullYear(), now.getMonth(), now.getDate() - 1); }
+    else if (type === "7") from = d(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+    else if (type === "30") from = d(now.getFullYear(), now.getMonth(), now.getDate() - 29);
+    else if (type === "month") from = d(now.getFullYear(), now.getMonth(), 1);
+    else if (type === "lastmonth") { from = d(now.getFullYear(), now.getMonth() - 1, 1); to = d(now.getFullYear(), now.getMonth(), 0); }
 
-/* =========================================================
-   MOBILE SIDEBAR
-   ========================================================= */
+    $("startDate").value = ymd(from);
+    $("endDate").value = ymd(to);
+    document.querySelectorAll(".chip").forEach(c => c.classList.toggle("active", c.dataset.range === type));
+}
 
+/* ---------- events ---------- */
+$("generateBtn").addEventListener("click", loadDashboard);
+$("exportBtn").addEventListener("click", exportCSV);
+$("service").addEventListener("change", loadDashboard);
+$("limit").addEventListener("change", () => { currentPage = 1; renderDaily(); });
+
+["startDate", "endDate"].forEach(id => $(id).addEventListener("change", () => {
+    document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+}));
+
+$("chips").addEventListener("click", e => {
+    const b = e.target.closest(".chip");
+    if (!b) return;
+    setRange(b.dataset.range);
+    loadDashboard();
+});
+
+$("services").addEventListener("click", e => {
+    const box = e.target.closest(".service-box");
+    if (!box) return;
+    $("service").value = $("service").value === box.dataset.key ? "all" : box.dataset.key;
+    loadDashboard();
+});
+
+$("prevButton").addEventListener("click", () => { currentPage--; renderDaily(); });
+$("nextButton").addEventListener("click", () => { currentPage++; renderDaily(); });
+$("pageNumbers").addEventListener("click", e => {
+    const b = e.target.closest("button[data-page]");
+    if (b) { currentPage = Number(b.dataset.page); renderDaily(); }
+});
+
+/* ---------- theme ---------- */
+function syncThemeIcon() {
+    $("themeBtn").textContent = document.documentElement.getAttribute("data-theme") === "dark" ? "☀" : "☾";
+}
+$("themeBtn").addEventListener("click", () => {
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch (e) {}
+    syncThemeIcon();
+    if (lastData) renderCharts(lastData);
+});
+syncThemeIcon();
+
+/* ---------- mobile sidebar ---------- */
 (function () {
-    const mobileMenuBtn =
-        document.getElementById("mobileMenuBtn");
-
-    const sidebar =
-        document.querySelector(".sidebar");
-
-    const sidebarOverlay =
-        document.getElementById("sidebarOverlay");
-
-    function openMobileMenu() {
-        if (sidebar) {
-            sidebar.classList.add("mobile-open");
-        }
-
-        if (sidebarOverlay) {
-            sidebarOverlay.classList.add("active");
-        }
-
-        if (mobileMenuBtn) {
-            mobileMenuBtn.textContent = "✕";
-            mobileMenuBtn.setAttribute("aria-expanded", "true");
-            mobileMenuBtn.setAttribute("aria-label", "Close menu");
-        }
-
-        document.body.classList.add("menu-open");
+    const btn = $("mobileMenuBtn"), sidebar = $("sidebar"), overlay = $("sidebarOverlay");
+    function toggle(open) {
+        sidebar.classList.toggle("mobile-open", open);
+        overlay.classList.toggle("active", open);
+        document.body.classList.toggle("menu-open", open);
+        btn.textContent = open ? "✕" : "☰";
+        btn.setAttribute("aria-expanded", String(open));
     }
-
-    function closeMobileMenu() {
-        if (sidebar) {
-            sidebar.classList.remove("mobile-open");
-        }
-
-        if (sidebarOverlay) {
-            sidebarOverlay.classList.remove("active");
-        }
-
-        if (mobileMenuBtn) {
-            mobileMenuBtn.textContent = "☰";
-            mobileMenuBtn.setAttribute("aria-expanded", "false");
-            mobileMenuBtn.setAttribute("aria-label", "Open menu");
-        }
-
-        document.body.classList.remove("menu-open");
-    }
-
-    if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener("click", function () {
-            if (
-                sidebar &&
-                sidebar.classList.contains("mobile-open")
-            ) {
-                closeMobileMenu();
-            } else {
-                openMobileMenu();
-            }
-        });
-    }
-
-    if (sidebarOverlay) {
-        sidebarOverlay.addEventListener(
-            "click",
-            closeMobileMenu
-        );
-    }
-
-    document.querySelectorAll(".sidebar a").forEach(function (link) {
-        link.addEventListener("click", closeMobileMenu);
-    });
-
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-            closeMobileMenu();
-        }
-    });
-
-    window.addEventListener("resize", function () {
-        if (window.innerWidth > 768) {
-            closeMobileMenu();
-        }
-    });
+    btn.addEventListener("click", () => toggle(!sidebar.classList.contains("mobile-open")));
+    overlay.addEventListener("click", () => toggle(false));
+    sidebar.querySelectorAll("a.menu").forEach(a => a.addEventListener("click", () => {
+        sidebar.querySelectorAll("a.menu").forEach(x => x.classList.remove("active"));
+        a.classList.add("active");
+        toggle(false);
+    }));
+    document.addEventListener("keydown", e => { if (e.key === "Escape") toggle(false); });
+    window.addEventListener("resize", () => { if (window.innerWidth > 960) toggle(false); });
 })();
 
-loadDashboard(1);
+loadDashboard();
 </script>
 
 </body>
